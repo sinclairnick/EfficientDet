@@ -1,3 +1,6 @@
+# NOTE:ADDED
+import pyximport
+pyximport.install()
 # import keras
 import numpy as np
 from tensorflow import keras
@@ -40,12 +43,14 @@ AnchorParameters.default = AnchorParameters(
     scales=np.array([2 ** 0, 2 ** (1.0 / 3.0), 2 ** (2.0 / 3.0)], keras.backend.floatx()),
 )
 
-
+# NOTE: ADDED COLOR AND BODIES ANNOTATIONS
 def anchor_targets_bbox(
         anchors,
         image_group,
         annotations_group,
         num_classes,
+        num_colors,
+        num_bodies,
         negative_overlap=0.4,
         positive_overlap=0.5,
         detect_quadrangle=False
@@ -85,6 +90,10 @@ def anchor_targets_bbox(
     else:
         regression_batch = np.zeros((batch_size, anchors.shape[0], 4 + 1), dtype=np.float32)
     labels_batch = np.zeros((batch_size, anchors.shape[0], num_classes + 1), dtype=np.float32)
+    
+    colors_batch = keras.backend.one_hot(annotations['colors'], num_classes=num_colors)
+    bodies_batch = keras.backend.one_hot(annotations['bodies'], num_classes=num_bodies)
+
 
     # compute labels and regression targets
     for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
@@ -119,7 +128,7 @@ def anchor_targets_bbox(
             labels_batch[index, indices, -1] = -1
             regression_batch[index, indices, -1] = -1
 
-    return labels_batch, regression_batch
+    return labels_batch, regression_batch, colors_batch, bodies_batch
 
 
 def compute_gt_annotations(
