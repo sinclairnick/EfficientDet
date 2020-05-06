@@ -178,6 +178,8 @@ def create_generators(args):
         train_generator = CSVGenerator(
             args.annotations_path,
             args.classes_path,
+            args.colors_path,
+            args.bodies_path,
             misc_effect=misc_effect,
             visual_effect=visual_effect,
             **common_args
@@ -187,6 +189,8 @@ def create_generators(args):
             validation_generator = CSVGenerator(
                 args.val_annotations_path,
                 args.classes_path,
+                args.colors_path,
+                args.bodies_path,
                 shuffle_groups=False,
                 **common_args
             )
@@ -256,6 +260,9 @@ def parse_args(args):
     csv_parser = subparsers.add_parser('csv')
     csv_parser.add_argument('annotations_path', help='Path to CSV file containing annotations for training.')
     csv_parser.add_argument('classes_path', help='Path to a CSV file containing class label mapping.')
+    csv_parser.add_argument('colors_path', help='Path to a CSV file containing colors label mapping.')
+    csv_parser.add_argument('bodies_path', help='Path to a CSV file containing bodies label mapping.')
+
     csv_parser.add_argument('--val-annotations-path',
                             help='Path to CSV file containing annotations for validation (optional).')
     parser.add_argument('--detect-quadrangle', help='If to detect quadrangle.', action='store_true', default=False)
@@ -303,6 +310,8 @@ def main(args=None):
 
     num_classes = train_generator.num_classes()
     num_anchors = train_generator.num_anchors
+    num_colors = train_generator.num_colors()
+    num_bodies = train_generator.num_bodies()
 
     # optionally choose specific GPU
     if args.gpu:
@@ -344,7 +353,9 @@ def main(args=None):
     # compile model
     model.compile(optimizer=Adam(lr=1e-3), loss={
         'regression': smooth_l1_quad() if args.detect_quadrangle else smooth_l1(),
-        'classification': focal()
+        'classification': focal(),
+        'colors': keras.losses.CategoricalHinge(), # NOTE: ADDED
+        'bodies': keras.losses.CategoricalHinge() # NOTE: ADDED
     }, )
 
     # print(model.summary())
@@ -362,9 +373,10 @@ def main(args=None):
     elif args.compute_val_loss and validation_generator is None:
         raise ValueError('When you have no validation data, you should not specify --compute-val-loss.')
 
+    # NOTE: fit_generator is deprecated in TF2. Changed to fit().
     # start training
-    return model.fit_generator(
-        generator=train_generator,
+    return model.fit(
+        train_generator,
         steps_per_epoch=args.steps,
         initial_epoch=0,
         epochs=args.epochs,

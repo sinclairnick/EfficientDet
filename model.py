@@ -13,7 +13,7 @@ from tensorflow.keras import models
 from tfkeras import EfficientNetB0, EfficientNetB1, EfficientNetB2
 from tfkeras import EfficientNetB3, EfficientNetB4, EfficientNetB5, EfficientNetB6
 
-from layers import ClipBoxes, RegressBoxes, FilterDetections, wBiFPNAdd, BatchNormalization
+from layers import ClipBoxes, RegressBoxes, FilterDetections, wBiFPNAdd, BatchNormalization, SpatialPyramidPooling
 from initializers import PriorProbability
 from utils.anchors import anchors_for_shape
 import numpy as np
@@ -301,6 +301,24 @@ def build_BiFPN(features, num_channels, id, freeze_bn=False):
                                     name=f'fpn_cells/cell_{id}/fnode7/op_after_combine12')(P7_out)
     return P3_out, P4_td, P5_td, P6_td, P7_out
 
+# NOTE: ADDED
+class ClassifyNet(models.Model):
+    """
+    Used for general object classification using the FPN features
+    """
+    def __init__(self, pyramid_sizes=[2], max_pool_size=(3,3), max_pool_stride=(2,2), **kwargs):
+        super(ClassifyNet, self).__init__(**kwargs)
+        max_pool = layers.MaxPooling2D(pool_size=max_pool_size, strides=max_pool_stride)
+        spatial_pyramid = SpatialPyramidPooling(pyramid_sizes)
+        self.block = layers.Lambda(lambda x: spatial_pyramid(max_pool(x)))
+
+    def call(self, inputs, **kwargs):
+        out = [self.block(x) for x in inputs]
+        out = layers.Concatenate(axis=2)(out)
+        out = layers.Flatten()(out)
+        return out
+
+
 
 class BoxNet(models.Model):
     def __init__(self, width, depth, num_anchors=9, separable_conv=True, freeze_bn=False, detect_quadrangle=False, **kwargs):
@@ -416,8 +434,11 @@ class ClassNet(models.Model):
         return outputs
 
 
-def efficientdet(phi, num_classes=20, num_anchors=9, weighted_bifpn=False, freeze_bn=False,
-                 score_threshold=0.01, detect_quadrangle=False, anchor_parameters=None, separable_conv=True):
+def efficientdet(phi, num_classes=20, num_anchors=9, 
+    num_colors=13, # NOTE: ADDED
+    num_bodies=11, # NOTE: ADDED
+    weighted_bifpn=False, freeze_bn=False,
+    score_threshold=0.01, detect_quadrangle=False, anchor_parameters=None, separable_conv=True):
     assert phi in range(7)
     input_size = image_sizes[phi]
     input_shape = (input_size, input_size, 3)
@@ -445,7 +466,13 @@ def efficientdet(phi, num_classes=20, num_anchors=9, weighted_bifpn=False, freez
     regression = [box_net([feature, i]) for i, feature in enumerate(fpn_features)]
     regression = layers.Concatenate(axis=1, name='regression')(regression)
 
-    model = models.Model(inputs=[image_input], outputs=[classification, regression], name='efficientdet')
+    # NOTE: ADDED
+    flattened_pyramid = ClassifyNet()(fpn_features)
+    colors = layers.Dense(num_colors, name="colors")(flattened_pyramid)
+    bodies = layers.Dense(num_bodies, name="bodies")(flattened_pyramid)
+
+    # NOTE: ADDED COLORS AND BODIES TO OUTPUTS
+    model = models.Model(inputs=[image_input], outputs=[classification, regression, colors, bodies], name='efficientdet')
 
     # apply predicted regression to anchors
     anchors = anchors_for_shape((input_size, input_size), anchor_params=anchor_parameters)
@@ -466,7 +493,11 @@ def efficientdet(phi, num_classes=20, num_anchors=9, weighted_bifpn=False, freez
             score_threshold=score_threshold
         )([boxes, classification])
 
-    prediction_model = models.Model(inputs=[image_input], outputs=detections, name='efficientdet_p')
+    colors_conf = layers.Activation('softmax', name="colors_conf")(colors)
+    bodies_conf = layers.Activation('softmax', name="bodies_conf")(bodies)
+
+    # NOTE: ADDED BRANCHES TO OUTPUTS
+    prediction_model = models.Model(inputs=[image_input], outputs=[detections, colors_conf, bodies_conf], name='efficientdet_p')
     return model, prediction_model
 
 
