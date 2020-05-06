@@ -26,8 +26,6 @@ import os.path as osp
 from collections import OrderedDict
 
 
-import os
-
 def _parse(value, function, fmt):
     """
     Parse a string into a value, and format a nice ValueError if it fails.
