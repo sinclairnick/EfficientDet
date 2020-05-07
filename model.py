@@ -301,25 +301,6 @@ def build_BiFPN(features, num_channels, id, freeze_bn=False):
                                     name=f'fpn_cells/cell_{id}/fnode7/op_after_combine12')(P7_out)
     return P3_out, P4_td, P5_td, P6_td, P7_out
 
-# NOTE: ADDED
-class ClassifyNet(models.Model):
-    """
-    Used for general object classification using the FPN features
-    """
-    def __init__(self, pyramid_sizes=[2], max_pool_size=(3,3), max_pool_stride=(2,2), **kwargs):
-        super(ClassifyNet, self).__init__(**kwargs)
-        max_pool = layers.MaxPooling2D(pool_size=max_pool_size, strides=max_pool_stride)
-        spatial_pyramid = SpatialPyramidPooling(pyramid_sizes)
-        self.block = layers.Lambda(lambda x: spatial_pyramid(max_pool(x)))
-
-    def call(self, inputs, **kwargs):
-        out = [self.block(x) for x in inputs]
-        out = layers.Concatenate(axis=2)(out)
-        out = layers.Flatten()(out)
-        return out
-
-
-
 class BoxNet(models.Model):
     def __init__(self, width, depth, num_anchors=9, separable_conv=True, freeze_bn=False, detect_quadrangle=False, **kwargs):
         super(BoxNet, self).__init__(**kwargs)
@@ -436,7 +417,7 @@ class ClassNet(models.Model):
 
 def efficientdet(phi, num_classes=20, num_anchors=9, 
     num_colors=13, # NOTE: ADDED
-    num_bodies=11, # NOTE: ADDED
+    num_bodies=10, # NOTE: ADDED
     weighted_bifpn=False, freeze_bn=False,
     score_threshold=0.01, detect_quadrangle=False, anchor_parameters=None, separable_conv=True):
     assert phi in range(7)
@@ -467,9 +448,13 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
     regression = layers.Concatenate(axis=1, name='regression')(regression)
 
     # NOTE: ADDED
-    flattened_pyramid = ClassifyNet()(fpn_features)
-    colors = layers.Dense(num_colors, name="colors")(flattened_pyramid)
-    bodies = layers.Dense(num_bodies, name="bodies")(flattened_pyramid)
+    spp = SpatialPyramidPooling()
+    pyramids = [spp(layer) for layer in fpn_features]
+    final_layer = layers.Concatenate(axis=1)(pyramids)
+    final_layer = layers.Flatten()(final_layer)
+    final_layer = layers.Lambda(lambda x: tf.nn.swish(x))(final_layer)
+    colors = layers.Dense(num_colors, name="colors")(final_layer)
+    bodies = layers.Dense(num_bodies, name="bodies")(final_layer)
 
     # NOTE: ADDED COLORS AND BODIES TO OUTPUTS
     model = models.Model(inputs=[image_input], outputs=[classification, regression, colors, bodies], name='efficientdet')
@@ -493,9 +478,9 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
             score_threshold=score_threshold
         )([boxes, classification])
 
-    colors_conf = layers.Activation('softmax', name="colors_conf")(colors)
-    bodies_conf = layers.Activation('softmax', name="bodies_conf")(bodies)
-
+    colors_conf = layers.Activation('softmax')(colors)
+    bodies_conf = layers.Activation('softmax')(bodies)
+    
     # NOTE: ADDED BRANCHES TO OUTPUTS
     prediction_model = models.Model(inputs=[image_input], outputs=[detections, colors_conf, bodies_conf], name='efficientdet_p')
     return model, prediction_model
