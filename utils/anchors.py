@@ -1,10 +1,6 @@
-# NOTE:ADDED
-import pyximport
-pyximport.install()
 # import keras
 import numpy as np
 from tensorflow import keras
-
 from utils.compute_overlap import compute_overlap
 
 
@@ -82,6 +78,8 @@ def anchor_targets_bbox(
     for annotations in annotations_group:
         assert ('bboxes' in annotations), "Annotations should contain bboxes."
         assert ('labels' in annotations), "Annotations should contain labels."
+        assert ('color_labels' in annotations), "Annotations should contain colors." # NOTE: ADDED
+        assert ('body_labels' in annotations), "Annotations should contain bodies." # NOTE: ADDED
 
     batch_size = len(image_group)
 
@@ -90,13 +88,13 @@ def anchor_targets_bbox(
     else:
         regression_batch = np.zeros((batch_size, anchors.shape[0], 4 + 1), dtype=np.float32)
     labels_batch = np.zeros((batch_size, anchors.shape[0], num_classes + 1), dtype=np.float32)
-    
-    colors_batch = keras.backend.one_hot(annotations['colors'], num_classes=num_colors)
-    bodies_batch = keras.backend.one_hot(annotations['bodies'], num_classes=num_bodies)
-
+    color_labels_batch = np.zeros((batch_size, num_colors), dtype=np.float32)
+    body_labels_batch = np.zeros((batch_size, num_bodies), dtype=np.float32)
 
     # compute labels and regression targets
     for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
+        color_labels_batch[index] = keras.backend.one_hot(annotations['color_labels'], num_classes=num_colors)
+        body_labels_batch[index] = keras.backend.one_hot(annotations['body_labels'], num_classes=num_bodies)
         if annotations['bboxes'].shape[0]:
             # obtain indices of gt annotations with the greatest overlap
             # argmax_overlaps_inds: id of ground truth box has greatest overlap with anchor
@@ -128,7 +126,7 @@ def anchor_targets_bbox(
             labels_batch[index, indices, -1] = -1
             regression_batch[index, indices, -1] = -1
 
-    return labels_batch, regression_batch, colors_batch, bodies_batch
+    return labels_batch, regression_batch, color_labels_batch, body_labels_batch
 
 
 def compute_gt_annotations(
