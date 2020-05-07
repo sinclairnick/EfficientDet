@@ -375,8 +375,6 @@ def main(args=None):
     elif args.compute_val_loss and validation_generator is None:
         raise ValueError('When you have no validation data, you should not specify --compute-val-loss.')
 
-    keras.utils.plot_model(model, to_file='model.png', show_shapes=True)
-
     # NOTE: fit_generator is deprecated in TF2. Changed to fit().
     # start training
     return model.fit(
