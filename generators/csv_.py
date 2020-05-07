@@ -353,14 +353,14 @@ class CSVGenerator(Generator):
         annotations = {'labels': np.empty((0,), dtype=np.int32),
                        'bboxes': np.empty((0, 4), dtype=np.float32),
                        'quadrangles': np.empty((0, 4, 2), dtype=np.float32),
-                       'colors': np.empty((0,), dtype=np.int32), # NOTE: ADDED
-                       'bodies': np.empty((0,), dtype=np.int32) # NOTE: ADDED
+                       'color_labels': np.empty((0,), dtype=np.int32), # NOTE: ADDED
+                       'body_labels': np.empty((0,), dtype=np.int32) # NOTE: ADDED
                        }
 
         for idx, annot in enumerate(self.image_data[path]):
             annotations['labels'] = np.concatenate((annotations['labels'], [self.name_to_label( annot['class'])]))
-            annotations['colors'] = np.concatenate((annotations['colors'], [self.color_to_id(annot['color'])])) # NOTE: ADDED
-            annotations['bodies'] = np.concatenate((annotations['bodies'], [self.body_to_id(annot['body'])])) # NOTE: ADDED
+            annotations['color_labels'] = np.concatenate((annotations['color_labels'], [self.color_to_id(annot['color'])])) # NOTE: ADDED
+            annotations['body_labels'] = np.concatenate((annotations['body_labels'], [self.body_to_id(annot['body'])])) # NOTE: ADDED
             if self.detect_quadrangle:
                 quadrangle = np.array([[float(annot['x1']), float(annot['y1'])],
                                        [float(annot['x2']), float(annot['y2'])],
