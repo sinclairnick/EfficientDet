@@ -23,6 +23,8 @@ import progressbar
 
 assert (callable(progressbar.progressbar)), "Using wrong progressbar module, install 'progressbar2' instead."
 
+# NOTE: ADDED
+import tensorflow as tf
 
 def _compute_ap(recall, precision):
     """
@@ -86,7 +88,16 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
         image, scale = generator.preprocess_image(image)
 
         # run network
-        boxes, scores, *_, labels = model.predict_on_batch([np.expand_dims(image, axis=0)])
+        out = model.predict_on_batch([np.expand_dims(image, axis=0)]) # NOTE: ADDED/CHANGED THE BELOW TO ACCOUNT FOR CLASS PREDICTIONS
+        color_preds = np.array(out[1])
+        body_preds = np.array(out[2])
+        boxes, scores, *_, labels = out[0]
+
+        # NOTE: TF2.0 Complains about manipulating tensors so changed some of the below 
+        # to accomodate this
+        scores = np.array(scores)
+        boxes = np.array(boxes) 
+        
         boxes /= scale
         boxes[:, :, 0] = np.clip(boxes[:, :, 0], 0, w - 1)
         boxes[:, :, 1] = np.clip(boxes[:, :, 1], 0, h - 1)
@@ -97,18 +108,18 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
         indices = np.where(scores[0, :] > score_threshold)[0]
 
         # select those scores
-        scores = scores[0][indices]
+        scores = tf.gather(scores[0], indices)
 
         # find the order with which to sort the scores
         scores_sort = np.argsort(-scores)[:max_detections]
 
         # select detections
         # (n, 4)
-        image_boxes = boxes[0, indices[scores_sort], :]
+        image_boxes = tf.gather(boxes[0] , tf.gather(indices,scores_sort))
         # (n, )
-        image_scores = scores[scores_sort]
+        image_scores = tf.gather(scores,scores_sort)
         # (n, )
-        image_labels = labels[0, indices[scores_sort]]
+        image_labels = tf.gather(labels[0], tf.gather(indices,scores_sort))
         # (n, 6)
         detections = np.concatenate(
             [image_boxes, np.expand_dims(image_scores, axis=1), np.expand_dims(image_labels, axis=1)], axis=1)
