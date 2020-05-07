@@ -80,7 +80,7 @@ def create_callbacks(training_model, prediction_model, validation_generator, arg
         tensorboard_callback = keras.callbacks.TensorBoard(
             log_dir=args.tensorboard_dir,
             histogram_freq=0,
-            batch_size=args.batch_size,
+            # batch_size=args.batch_size, # this argument is deprecated in tf2.0
             write_graph=True,
             write_grads=False,
             write_images=False,
@@ -322,6 +322,8 @@ def main(args=None):
     model, prediction_model = efficientdet(args.phi,
                                            num_classes=num_classes,
                                            num_anchors=num_anchors,
+                                           num_colors=num_colors,
+                                           num_bodies=num_bodies,
                                            weighted_bifpn=args.weighted_bifpn,
                                            freeze_bn=args.freeze_bn,
                                            detect_quadrangle=args.detect_quadrangle
@@ -372,6 +374,8 @@ def main(args=None):
         validation_generator = None
     elif args.compute_val_loss and validation_generator is None:
         raise ValueError('When you have no validation data, you should not specify --compute-val-loss.')
+
+    keras.utils.plot_model(model, to_file='model.png', show_shapes=True)
 
     # NOTE: fit_generator is deprecated in TF2. Changed to fit().
     # start training
