@@ -451,8 +451,7 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
     spp = SpatialPyramidPooling()
     pyramids = [spp(layer) for layer in fpn_features]
     final_layer = layers.Concatenate(axis=1)(pyramids)
-    final_layer = layers.Flatten()(final_layer)
-    final_layer = layers.Lambda(lambda x: tf.nn.swish(x))(final_layer)
+    final_layer = layers.Dropout(rate=0.1)(final_layer)
     colors = layers.Dense(num_colors, name="colors")(final_layer)
     bodies = layers.Dense(num_bodies, name="bodies")(final_layer)
 
