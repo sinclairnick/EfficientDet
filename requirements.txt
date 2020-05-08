@@ -8,3 +8,4 @@ git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
 tqdm==4.28.1
 tensorflow
 cython
+wandb
