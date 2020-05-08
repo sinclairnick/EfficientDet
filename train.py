@@ -393,20 +393,32 @@ def main(args=None):
     elif args.compute_val_loss and validation_generator is None:
         raise ValueError('When you have no validation data, you should not specify --compute-val-loss.')
 
-    # NOTE: fit_generator is deprecated in TF2. Changed to fit().
-    # start training
-    return model.fit(
-        train_generator,
-        steps_per_epoch=args.steps,
-        initial_epoch=0,
-        epochs=args.epochs,
-        verbose=1,
-        callbacks=callbacks,
-        workers=args.workers,
-        use_multiprocessing=args.multiprocessing,
-        max_queue_size=args.max_queue_size,
-        validation_data=validation_generator
-    )
+    # NOTE: ADDED - TPU Stuff
+    try:
+        resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu='grpc://' + os.environ['COLAB_TPU_ADDR'])
+        tf.config.experimental_connect_to_cluster(resolver)
+        # This is the TPU initialization code that has to be at the beginning.
+        tf.tpu.experimental.initialize_tpu_system(resolver)
+        strategy = tf.distribute.experimental.TPUStrategy(resolver)
+    except KeyError:
+        print('No TPU found, using GPU')
+        strategy =  tf.distribute.get_strategy()
+
+    with strategy.scope():
+        # NOTE: fit_generator is deprecated in TF2. Changed to fit().
+        # start training
+        return model.fit(
+            train_generator,
+            steps_per_epoch=args.steps,
+            initial_epoch=0,
+            epochs=args.epochs,
+            verbose=1,
+            callbacks=callbacks,
+            workers=args.workers,
+            use_multiprocessing=args.multiprocessing,
+            max_queue_size=args.max_queue_size,
+            validation_data=validation_generator
+        )
 
     if args.wandb:
         wandb.save('checkpoints/**/*.h5')
