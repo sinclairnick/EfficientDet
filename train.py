@@ -369,12 +369,14 @@ def main(args=None):
     if args.gpu and len(args.gpu.split(',')) > 1:
         model = keras.utils.multi_gpu_model(model, gpus=list(map(int, args.gpu.split(','))))
 
+    classifier_loss = keras.losses.CategoricalHinge() if args.hinge_loss else keras.losses.CategoricalCrossentropy()
+
     # compile model
     model.compile(optimizer=Adam(lr=1e-3), loss={
         'regression': smooth_l1_quad() if args.detect_quadrangle else smooth_l1(),
         'classification': focal(),
-        'colors': keras.losses.CategoricalHinge(), # NOTE: ADDED
-        'bodies': keras.losses.CategoricalHinge() # NOTE: ADDED
+        'colors': classifier_loss, # NOTE: ADDED
+        'bodies': classifier_loss # NOTE: ADDED
     }, )
 
     # print(model.summary())
