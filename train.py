@@ -35,6 +35,9 @@ from model import efficientdet
 from losses import smooth_l1, focal, smooth_l1_quad
 from efficientnet import BASE_WEIGHTS_PATH, WEIGHTS_HASHES
 
+# NOTE: ADDED
+import wandb
+
 
 def makedirs(path):
     # Intended behavior: try to create the directory,
@@ -260,8 +263,15 @@ def parse_args(args):
     csv_parser = subparsers.add_parser('csv')
     csv_parser.add_argument('annotations_path', help='Path to CSV file containing annotations for training.')
     csv_parser.add_argument('classes_path', help='Path to a CSV file containing class label mapping.')
+
+    # NOTE: ADDED
     csv_parser.add_argument('colors_path', help='Path to a CSV file containing colors label mapping.')
     csv_parser.add_argument('bodies_path', help='Path to a CSV file containing bodies label mapping.')
+
+    # NOTE: ADDED
+    parser.add_argument('--dropout_rate', help='Dropout rate for classification branch', default=0.1, type=float, choices=(0.1, 0.2, 0.3))
+    parser.add_argument('--hinge_loss', help='Whether to use hinge loss as activation', default=False, action="store_true")
+    parser.add_argument('--wandb', help='Whether to use wandb syncing', default=False, action="store_true")
 
     csv_parser.add_argument('--val-annotations-path',
                             help='Path to CSV file containing annotations for validation (optional).')
@@ -310,8 +320,12 @@ def main(args=None):
 
     num_classes = train_generator.num_classes()
     num_anchors = train_generator.num_anchors
-    num_colors = train_generator.num_colors()
-    num_bodies = train_generator.num_bodies()
+    num_colors = train_generator.num_colors() # NOTE: ADDED
+    num_bodies = train_generator.num_bodies() # NOTE: ADDED
+
+    # NOTE: ADDED
+    if args.wandb:
+        wandb.init(config=args, sync_tensorboard=True, name="test-run")
 
     # optionally choose specific GPU
     if args.gpu:
@@ -324,6 +338,8 @@ def main(args=None):
                                            num_anchors=num_anchors,
                                            num_colors=num_colors,
                                            num_bodies=num_bodies,
+                                           dropout_rate=args.dropout_rate,
+                                           hinge_loss=args.hinge_loss,
                                            weighted_bifpn=args.weighted_bifpn,
                                            freeze_bn=args.freeze_bn,
                                            detect_quadrangle=args.detect_quadrangle
@@ -389,6 +405,9 @@ def main(args=None):
         max_queue_size=args.max_queue_size,
         validation_data=validation_generator
     )
+
+    if args.wandb:
+        wandb.save('checkpoints/**/*.h5')
 
 
 if __name__ == '__main__':
