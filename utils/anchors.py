@@ -93,8 +93,8 @@ def anchor_targets_bbox(
 
     # compute labels and regression targets
     for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
-        color_labels_batch[index] = keras.backend.one_hot(annotations['color_labels'], num_classes=num_colors)
-        body_labels_batch[index] = keras.backend.one_hot(annotations['body_labels'], num_classes=num_bodies)
+        color_labels_batch[index] = keras.backend.one_hot(annotations['color_labels'][0], num_classes=num_colors)
+        body_labels_batch[index] = keras.backend.one_hot(annotations['body_labels'][0], num_classes=num_bodies)
         if annotations['bboxes'].shape[0]:
             # obtain indices of gt annotations with the greatest overlap
             # argmax_overlaps_inds: id of ground truth box has greatest overlap with anchor
