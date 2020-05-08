@@ -336,14 +336,14 @@ def main(args=None):
     try:
         resolver = tf.distribute.cluster_resolver.TPUClusterResolver(tpu='grpc://' + os.environ['COLAB_TPU_ADDR'])
     except ValueError: # If TPU not found
-        tpu = None
+        resolver = None
 
     # Select appropriate distribution strategy
     if resolver:
         tf.config.experimental_connect_to_cluster(resolver)
         tf.tpu.experimental.initialize_tpu_system(resolver)
         strategy = tf.distribute.experimental.TPUStrategy(resolver)
-        print('Running on TPU ', tpu.cluster_spec().as_dict()['worker'])  
+        print('Running on TPU ', resolver.cluster_spec().as_dict()['worker'])  
     else:
         strategy = tf.distribute.get_strategy() # Default strategy that works on CPU and single GPU
         print('Running on CPU/GPU instead')
