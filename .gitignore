@@ -114,3 +114,5 @@ tests/
 *test-dev*
 val2017*
 *.txt
+
+wandb
