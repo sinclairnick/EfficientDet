@@ -121,8 +121,6 @@ def create_callbacks(training_model, prediction_model, validation_generator, arg
         )
         callbacks.append(checkpoint)
 
-    callbacks.append(wandb.keras.WandbCallback())
-
     # callbacks.append(keras.callbacks.ReduceLROnPlateau(
     #     monitor='loss',
     #     factor=0.1,
