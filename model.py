@@ -418,6 +418,8 @@ class ClassNet(models.Model):
 def efficientdet(phi, num_classes=20, num_anchors=9, 
     num_colors=13, # NOTE: ADDED
     num_bodies=10, # NOTE: ADDED
+    dropout_rate=0.1, # NOTE: ADDED
+    hinge_loss=True, # NOTE: ADDED
     weighted_bifpn=False, freeze_bn=False,
     score_threshold=0.01, detect_quadrangle=False, anchor_parameters=None, separable_conv=True):
     assert phi in range(7)
@@ -451,9 +453,19 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
     spp = SpatialPyramidPooling()
     pyramids = [spp(layer) for layer in fpn_features]
     final_layer = layers.Concatenate(axis=1)(pyramids)
-    final_layer = layers.Dropout(rate=0.1)(final_layer)
-    colors = layers.Dense(num_colors, name="colors")(final_layer)
-    bodies = layers.Dense(num_bodies, name="bodies")(final_layer)
+    final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
+
+    if hinge_loss: # use 
+        colors = layers.Dense(num_colors, name="colors", activation="linear")(final_layer)
+        bodies = layers.Dense(num_bodies, name="bodies", activation="linear")(final_layer)
+        colors_conf = layers.Activation('softmax')(colors)
+        bodies_conf = layers.Activation('softmax')(bodies)
+    else: # use softmax activation
+        colors = layers.Dense(num_colors, name="colors", activation="softmax")(final_layer)
+        bodies = layers.Dense(num_bodies, name="bodies", activation="softmax")(final_layer)
+        colors_conf = colors
+        bodies_conf = bodies
+
 
     # NOTE: ADDED COLORS AND BODIES TO OUTPUTS
     model = models.Model(inputs=[image_input], outputs=[classification, regression, colors, bodies], name='efficientdet')
@@ -476,9 +488,6 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
             name='filtered_detections',
             score_threshold=score_threshold
         )([boxes, classification])
-
-    colors_conf = layers.Activation('softmax')(colors)
-    bodies_conf = layers.Activation('softmax')(bodies)
     
     # NOTE: ADDED BRANCHES TO OUTPUTS
     prediction_model = models.Model(inputs=[image_input], outputs=[detections, colors_conf, bodies_conf], name='efficientdet_p')
