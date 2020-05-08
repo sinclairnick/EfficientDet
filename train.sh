@@ -9,6 +9,7 @@ python3 train.py \
     --freeze-backbone \
     --batch-size 32 \
     --steps 10 \
+    --epochs 100 \
     --hinge_loss \
     --dropout_rate 0.1 \
     --wandb \
