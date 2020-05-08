@@ -10,6 +10,7 @@ python3 train.py \
     --batch-size 32 \
     --steps 10 \
     --hinge_loss \
+    --dropout_rate 0.1 \
     --wandb \
     csv data/train.csv data/classes.csv data/colors.csv data/bodies.csv \
     --val-annotations data/val.csv
