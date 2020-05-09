@@ -435,7 +435,7 @@ def max_pool_2d_nxn_regions(inputs, output_size: int, mode: str):
     return result
 
 def SpatialPyramidPooling():
-    return keras.layers.Lambda(lambda x: spatial_pyramid_pool(x, dimensions=[2,2]))
+    return keras.layers.Lambda(lambda x: spatial_pyramid_pool(x))
 
 def spatial_pyramid_pool(inputs, dimensions=[2,1], mode='max', implementation='kaiming'):
     """
