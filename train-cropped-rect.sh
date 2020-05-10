@@ -4,7 +4,6 @@ python3 train.py \
     --phi 0 \
     --gpu 0 \
     --weighted-bifpn \
-    --random-transform \
     --compute-val-loss \
     --freeze-backbone \
     --freeze-bn \
