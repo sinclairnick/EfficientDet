@@ -270,7 +270,7 @@ def parse_args(args):
     csv_parser.add_argument('bodies_path', help='Path to a CSV file containing bodies label mapping.')
 
     # NOTE: ADDED
-    parser.add_argument('--dropout_rate', help='Dropout rate for classification branch', default=0.1, type=float, choices=(0.1, 0.2, 0.3))
+    parser.add_argument('--dropout_rate', help='Dropout rate for classification branch', default=0.1, type=float, choices=(0.1, 0.2, 0.3, 0.4, 0.5))
     parser.add_argument('--hinge_loss', help='Whether to use hinge loss as activation', default=False, action="store_true")
     parser.add_argument('--wandb', help='Whether to use wandb syncing', default=False, action="store_true")
     parser.add_argument('--lr', help='Learning rate', default=1e-3, type=float, choices=(0.01, 0.001, 0.0001))
