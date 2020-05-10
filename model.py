@@ -453,7 +453,7 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
     spp = SpatialPyramidPooling()
     pyramids = [spp(layer) for layer in fpn_features]
     final_layer = layers.Concatenate(axis=1)(pyramids)
-    final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
+    # final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
 
     if hinge_loss: # use 
         colors = layers.Dense(num_colors, name="colors")(final_layer)
