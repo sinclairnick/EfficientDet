@@ -468,12 +468,12 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
     #     bodies_conf = bodies
     colornet = ClassNet(w_head, d_head, num_anchors=1, separable_conv=separable_conv, freeze_bn=freeze_bn)
     colors = [colornet([feature, i]) for i, feature in enumerate(fpn_features)]
-    colors = layers.Concatenate(colors)
+    colors = layers.Concatenate()(colors)
     colors = layers.Dense(num_colors)(colors)
     colors = layers.Activation('softmax')(colors)
     bodynet = ClassNet(w_head, d_head, num_anchors=1, separable_conv=separable_conv, freeze_bn=freeze_bn)
     bodies = [bodynet([feature, i]) for i, feature in enumerate(fpn_features)]
-    bodies = layers.Concatenate(bodies)
+    bodies = layers.Concatenate()(bodies)
     bodies = layers.Dense(num_colors)(bodies)
     bodies = layers.Activation('softmax')(bodies)
 
