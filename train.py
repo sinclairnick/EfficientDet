@@ -272,6 +272,7 @@ def parse_args(args):
     parser.add_argument('--dropout_rate', help='Dropout rate for classification branch', default=0.1, type=float, choices=(0.1, 0.2, 0.3))
     parser.add_argument('--hinge_loss', help='Whether to use hinge loss as activation', default=False, action="store_true")
     parser.add_argument('--wandb', help='Whether to use wandb syncing', default=False, action="store_true")
+    parser.add_argument('--lr', help='Learning rate', default=1e-3, type=float, choices=(0.01, 0.001, 0.0001))
 
     csv_parser.add_argument('--val-annotations-path',
                             help='Path to CSV file containing annotations for validation (optional).')
@@ -343,7 +344,7 @@ def main(args=None):
                                         freeze_bn=args.freeze_bn,
                                         detect_quadrangle=args.detect_quadrangle
                                         )
-    # load pretrained weights
+    # load pretrained weights    
     if args.snapshot:
         if args.snapshot == 'imagenet':
             model_name = 'efficientnet-b{}'.format(args.phi)
@@ -368,7 +369,7 @@ def main(args=None):
         model = keras.utils.multi_gpu_model(model, gpus=list(map(int, args.gpu.split(','))))
 
     # compile model
-    model.compile(optimizer=Adam(lr=1e-4), loss={
+    model.compile(optimizer=Adam(lr=args.lr), loss={
         'regression': smooth_l1_quad() if args.detect_quadrangle else smooth_l1(),
         'classification': focal(),
         'colors': keras.losses.CategoricalHinge() if args.hinge_loss else keras.losses.CategoricalCrossentropy(), # NOTE: ADDED
