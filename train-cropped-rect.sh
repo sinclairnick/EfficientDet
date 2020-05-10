@@ -5,7 +5,6 @@ python3 train.py \
     --gpu 0 \
     --weighted-bifpn \
     --compute-val-loss \
-    --freeze-backbone \
     --batch-size 70 \
     --lr 0.0001 \
     --steps 10 \
