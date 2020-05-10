@@ -5,7 +5,7 @@ python3 train.py \
     --gpu 0 \
     --weighted-bifpn \
     --compute-val-loss \
-    --batch-size 70 \
+    --batch-size 35 \
     --lr 0.0001 \
     --steps 10 \
     --epochs 200 \
