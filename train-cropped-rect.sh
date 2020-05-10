@@ -7,7 +7,6 @@ python3 train.py \
     --random-transform \
     --compute-val-loss \
     --freeze-backbone \
-    --freeze-bn \
     --batch-size 70 \
     --lr 0.001 \
     --steps 10 \
