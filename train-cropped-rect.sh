@@ -10,7 +10,7 @@ python3 train.py \
     --lr 0.0001 \
     --steps 10 \
     --epochs 200 \
-    --dropout_rate 0.3 \
+    --dropout_rate 0.5 \
     --wandb \
     csv data/train-cropped-rect.csv data/classes.csv data/colors.csv data/bodies.csv \
     --val-annotations data/val-cropped-rect.csv
