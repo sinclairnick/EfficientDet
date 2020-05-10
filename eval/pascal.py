@@ -19,6 +19,9 @@ from tensorflow import keras
 import tensorflow as tf
 from eval.common import evaluate
 
+# NOTE: ADDED
+import wandb
+
 
 class Evaluate(keras.callbacks.Callback):
     """
@@ -83,6 +86,10 @@ class Evaluate(keras.callbacks.Callback):
                 print('{:.0f} instances of class'.format(num_annotations),
                       self.generator.label_to_name(label), 'with average precision: {:.4f}'.format(average_precision))
             total_instances.append(num_annotations)
+            wandb.log({
+                'epoch': epoch,
+                'mAP/' + self.generator.label_to_name(label): average_precision
+            })
             precisions.append(average_precision)
         if self.weighted_average:
             self.mean_ap = sum([a * b for a, b in zip(total_instances, precisions)]) / sum(total_instances)
@@ -100,6 +107,11 @@ class Evaluate(keras.callbacks.Callback):
                 tf.summary.scalar('mAP', self.mean_ap, epoch)
 
         logs['mAP'] = self.mean_ap
+
+        wandb.log({
+            'epoch': epoch,
+            'mAP': self.mean_ap,
+        })
 
         if self.verbose == 1:
             print('mAP: {:.4f}'.format(self.mean_ap))
