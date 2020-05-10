@@ -1,14 +1,13 @@
 # script to set variables more easily - note steps * batch_size <= training samples
 python3 train.py \
     --snapshot imagenet \
-    --phi 0 \
+    --phi 2 \
     --gpu 0 \
     --weighted-bifpn \
     --compute-val-loss \
     --freeze-backbone \
-    --freeze-bn \
     --batch-size 70 \
-    --lr 0.001 \
+    --lr 0.0001 \
     --steps 10 \
     --epochs 200 \
     --dropout_rate 0.1 \
