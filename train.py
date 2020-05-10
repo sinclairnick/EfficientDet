@@ -327,7 +327,7 @@ def main(args=None):
 
     # NOTE: ADDED
     if args.wandb:
-        wandb.init(config=args, sync_tensorboard=True)
+        wandb.init(config=args)
 
     # optionally choose specific GPU
     if args.gpu:
