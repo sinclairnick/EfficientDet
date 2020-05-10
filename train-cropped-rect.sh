@@ -1,7 +1,7 @@
 # script to set variables more easily - note steps * batch_size <= training samples
 python3 train.py \
     --snapshot imagenet \
-    --phi 2 \
+    --phi 0 \
     --gpu 0 \
     --weighted-bifpn \
     --compute-val-loss \
