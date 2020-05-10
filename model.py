@@ -451,7 +451,7 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
 
     # NOTE: ADDED
     spp = SpatialPyramidPooling()
-    pyramids = [spp(layer) for layer in features]
+    pyramids = [spp(layer) for layer in features] # DONT USE FPN_FEATURES HERE!!
     final_layer = layers.Concatenate(axis=1)(pyramids)
     final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
 
