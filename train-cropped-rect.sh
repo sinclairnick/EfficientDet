@@ -3,6 +3,7 @@ python3 train.py \
     --snapshot imagenet \
     --phi 0 \
     --gpu 0 \
+    --freeze_backbone \
     --weighted-bifpn \
     --compute-val-loss \
     --batch-size 35 \
