@@ -470,6 +470,7 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
 
     # NOTE: ADDED COLORS AND BODIES TO OUTPUTS
     model = models.Model(inputs=[image_input], outputs=[classification, regression, colors, bodies], name='efficientdet')
+    model.load_weights('coco_weights/efficientdet-d{}.h5'.format(phi), by_name=True)
 
     # apply predicted regression to anchors
     anchors = anchors_for_shape((input_size, input_size), anchor_params=anchor_parameters)
@@ -490,8 +491,8 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
             score_threshold=score_threshold
         )([boxes, classification])
     
-    # NOTE: ADDED BRANCHES TO OUTPUTS
-    prediction_model = models.Model(inputs=[image_input], outputs=[detections, colors_conf, bodies_conf], name='efficientdet_p')
+    prediction_model = models.Model(inputs=[image_input], outputs=detections)
+
     return model, prediction_model
 
 
