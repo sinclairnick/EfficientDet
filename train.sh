@@ -12,5 +12,6 @@ python3 train.py \
     --epochs 200 \
     --hinge_loss \
     --dropout_rate 0.5 \
+    --wandb \
     csv data/train-annotations.csv data/classes.csv data/colors.csv data/bodies.csv \
     --val-annotations data/val-annotations.csv
