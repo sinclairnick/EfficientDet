@@ -6,7 +6,7 @@ python3 train.py \
     --weighted-bifpn \
     --compute-val-loss \
     --random-transform \
-    --batch-size 64 \
+    --batch-size 32 \
     --lr 0.001 \
     --steps 10 \
     --epochs 200 \
@@ -14,4 +14,4 @@ python3 train.py \
     --dropout_rate 0.5 \
     --wandb \
     csv data/train-annotations.csv data/classes.csv data/colors.csv data/bodies.csv \
-    --val-annotations data/val-annotations.csv
+    --val-annotations data/val-annotations.csvs
