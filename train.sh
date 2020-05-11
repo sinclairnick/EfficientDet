@@ -1,6 +1,5 @@
 # script to set variables more easily - note steps * batch_size <= training samples
 python3 train.py \
-    --snapshot imagenet \
     --phi 0 \
     --gpu 0 \
     --freeze-backbone \
