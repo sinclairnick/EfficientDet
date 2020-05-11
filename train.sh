@@ -11,7 +11,7 @@ python3 train.py \
     --lr 0.001 \
     --steps 10 \
     --epochs 200 \
-    --wandb \
     --hinge_loss \
-    csv data/train-cropped-rect.csv data/classes.csv data/colors.csv data/bodies.csv \
-    --val-annotations data/val-cropped-rect.csv
+    --dropout_rate 0.5 \
+    csv data/train-annotations.csv data/classes.csv data/colors.csv data/bodies.csv \
+    --val-annotations data/val-annotations.csv
