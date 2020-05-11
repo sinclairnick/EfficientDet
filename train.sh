@@ -1,6 +1,6 @@
 # script to set variables more easily - note steps * batch_size <= training samples
 python3 train.py \
-    --gpu 0 \
+    --gpu 0,1 \
     --freeze-backbone \
     --weighted-bifpn \
     --compute-val-loss \
