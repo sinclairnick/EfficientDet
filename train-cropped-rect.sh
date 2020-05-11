@@ -7,7 +7,7 @@ python3 train.py \
     --weighted-bifpn \
     --compute-val-loss \
     --random-transform \
-    --batch-size 70 \
+    --batch-size 64 \
     --lr 0.001 \
     --steps 10 \
     --epochs 200 \
