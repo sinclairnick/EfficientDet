@@ -69,7 +69,7 @@ class Evaluate(keras.callbacks.Callback):
         logs = logs or {}
 
         # run evaluation
-        average_precisions = evaluate(
+        average_precisions, color_acc, body_acc = evaluate(
             self.generator,
             self.active_model,
             iou_threshold=self.iou_threshold,
@@ -107,10 +107,11 @@ class Evaluate(keras.callbacks.Callback):
                 tf.summary.scalar('mAP', self.mean_ap, epoch)
 
         logs['mAP'] = self.mean_ap
-
         wandb.log({
             'epoch': epoch,
             'mAP': self.mean_ap,
+            'color_acc': color_acc,
+            'body_acc': body_acc
         })
 
         if self.verbose == 1:
