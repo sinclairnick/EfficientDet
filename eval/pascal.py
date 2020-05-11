@@ -109,9 +109,9 @@ class Evaluate(keras.callbacks.Callback):
         logs['mAP'] = self.mean_ap
         wandb.log({
             'epoch': epoch,
-            'mAP': self.mean_ap,
-            'color_acc': color_acc,
-            'body_acc': body_acc
+            'mAP/total': self.mean_ap,
+            'acc/color': color_acc,
+            'acc/body': body_acc
         })
 
         if self.verbose == 1:
