@@ -1,2 +1,2 @@
-python setup.py build_ext --inplace
-pip install -r requirements.txt
+python3 setup.py build_ext --inplace
+pip3 install -r requirements.txt
