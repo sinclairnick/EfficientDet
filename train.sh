@@ -3,6 +3,7 @@ python3 train.py \
     --phi 0 \
     --gpu 0 \
     --freeze-backbone \
+    --snapshot coco \
     --weighted-bifpn \
     --compute-val-loss \
     --random-transform \
