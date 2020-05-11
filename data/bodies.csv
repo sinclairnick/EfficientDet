@@ -1,10 +1,9 @@
-people-mover,0
+convertible,0
 coupe,1
-4x4,2
-van,3
-suv,4
+hatchback,2
+people-mover,3
+sedan,4
 station-wagon,5
-sedan,6
+suv,6
 ute,7
-hatchback,8
-convertible,9
+van,8
