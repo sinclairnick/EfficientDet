@@ -7,7 +7,7 @@ python3 train.py \
     --random-transform \
     --wandb \
     --batch-size 32 \
-    --snapshot coco \
+    --snapshot imagnet \
     --phi 0 \
     --lr 0.001 \
     --steps 10 \
