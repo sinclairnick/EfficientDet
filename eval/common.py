@@ -76,7 +76,7 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
         A list of lists containing the detections for each image in the generator.
 
     """
-    all_detections = [[None for i in range(generator.num_classes())] for j in
+    all_detections = [[None for i in range(generator.num_classes()) if generator.has_label(i)] for j in
                       range(generator.size())]
 
     color_preds = []
