@@ -356,8 +356,6 @@ def main(args=None):
                                                 cache_subdir='models',
                                                 file_hash=file_hash)
             model.load_weights(weights_path, by_name=True)
-        elif args.snapshot == 'coco':
-            model.load_weights('coco_weights/efficientdet-d{}.h5'.format(args.phi), by_name=True)
         else:
             print('Loading model, this may take a second...')
             model.load_weights(args.snapshot, by_name=True)
