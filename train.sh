@@ -6,7 +6,7 @@ python3 train.py \
     --compute-val-loss \
     --random-transform \
     --wandb \
-    --batch-size 64 \
+    --batch-size 32 \
     --snapshot coco \
     --phi 0 \
     --lr 0.001 \
