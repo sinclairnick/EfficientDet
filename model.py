@@ -456,8 +456,8 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
     final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
 
     if hinge_loss: # use 
-        colors = layers.Dense(num_colors, name="colors", activation="tanh")(final_layer)
-        bodies = layers.Dense(num_bodies, name="bodies", activation="tanh")(final_layer)
+        colors = layers.Dense(num_colors, name="colors", activation="relu")(final_layer)
+        bodies = layers.Dense(num_bodies, name="bodies", activation="relu")(final_layer)
         # Note that the below means the validation and training loss scales will differ !
         colors_conf = layers.Activation('softmax')(colors)
         bodies_conf = layers.Activation('softmax')(bodies)
