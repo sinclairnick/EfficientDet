@@ -30,17 +30,16 @@ pretrain:
     --freeze-backbone \
     --weighted-bifpn \
     --compute-val-loss \
-    --random-transform \
     --batch-size 32 \
-    --snapshot imagnet \
+    --snapshot imagenet \
     --phi ${PHI} \
     --lr ${LR} \
     --steps ${STEPS} \
     --epochs ${EPOCHS} \
     --dropout_rate ${DROPOUT_RATE} \
 	${HINGE} ${WANDB} \
-    csv ${PRETRAIN_DIR}/train-annotations.csv data/processed/classes.csv data/colors.csv \
-    --val-annotations ${PRETRAIN_DIR}/val-annotations.csv
+    csv ${PRETRAIN_DIR}/train_annotations.csv data/processed/classes.csv data/processed/colors.csv \
+    --val-annotations ${PRETRAIN_DIR}/val_annotations.csv
 
 train:
 	python3 train.py \
@@ -48,15 +47,14 @@ train:
 	--freeze-backbone \
 	--weighted-bifpn \
 	--compute-val-loss \
-	--random-transform \
 	--batch-size 32 \
-	--snapshot imagnet \
+	--snapshot imagenet \
 	--phi ${PHI} \
 	--lr ${LR} \
 	--steps ${STEPS} \
 	--epochs ${EPOCHS} \
 	--dropout_rate ${DROPOUT_RATE} \
 	${FLAGS} \
-	csv ${TRAIN_DIR}/train-annotations.csv \
-	data/classes.csv data/colors.csv \
-	--val-annotations ${TRAIN_DIR}/val-annotations.csv
+	csv ${TRAIN_DIR}/train_annotations.csv \
+	data/processed/classes.csv data/processed/colors.csv \
+	--val-annotations ${TRAIN_DIR}/val_annotations.csv

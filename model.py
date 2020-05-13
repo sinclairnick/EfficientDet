@@ -417,7 +417,6 @@ class ClassNet(models.Model):
 
 def efficientdet(phi, num_classes=20, num_anchors=9, 
     num_colors=13, # NOTE: ADDED
-    num_bodies=10, # NOTE: ADDED
     dropout_rate=0.1, # NOTE: ADDED
     hinge_loss=True, # NOTE: ADDED
     weighted_bifpn=False, freeze_bn=False,
@@ -457,19 +456,15 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
 
     if hinge_loss: # use 
         colors = layers.Dense(num_colors, name="colors")(final_layer)
-        bodies = layers.Dense(num_bodies, name="bodies")(final_layer)
         # Note that the below means the validation and training loss scales will differ !
         colors_conf = layers.Activation('softmax')(colors)
-        bodies_conf = layers.Activation('softmax')(bodies)
     else: # use softmax activation
         colors = layers.Dense(num_colors, name="colors", activation="softmax")(final_layer)
-        bodies = layers.Dense(num_bodies, name="bodies", activation="softmax")(final_layer)
         colors_conf = colors
-        bodies_conf = bodies
 
 
     # NOTE: ADDED COLORS AND BODIES TO OUTPUTS
-    model = models.Model(inputs=[image_input], outputs=[classification, regression, colors, bodies], name='efficientdet')
+    model = models.Model(inputs=[image_input], outputs=[classification, regression, colors], name='efficientdet')
 
     # apply predicted regression to anchors
     anchors = anchors_for_shape((input_size, input_size), anchor_params=anchor_parameters)
@@ -490,7 +485,7 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
             score_threshold=score_threshold
         )([boxes, classification])
     
-    prediction_model = models.Model(inputs=[image_input], outputs=[detections, colors_conf, bodies_conf])
+    prediction_model = models.Model(inputs=[image_input], outputs=[detections, colors_conf])
 
     return model, prediction_model
 

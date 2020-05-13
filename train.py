@@ -183,7 +183,6 @@ def create_generators(args):
             args.annotations_path,
             args.classes_path,
             args.colors_path,
-            args.bodies_path,
             misc_effect=misc_effect,
             visual_effect=visual_effect,
             **common_args
@@ -194,7 +193,6 @@ def create_generators(args):
                 args.val_annotations_path,
                 args.classes_path,
                 args.colors_path,
-                args.bodies_path,
                 shuffle_groups=False,
                 **common_args
             )
@@ -267,7 +265,6 @@ def parse_args(args):
 
     # NOTE: ADDED
     csv_parser.add_argument('colors_path', help='Path to a CSV file containing colors label mapping.')
-    csv_parser.add_argument('bodies_path', help='Path to a CSV file containing bodies label mapping.')
 
     # NOTE: ADDED
     parser.add_argument('--dropout_rate', help='Dropout rate for classification branch', default=0.1, type=float, choices=(0.1, 0.2, 0.3, 0.4, 0.5))
@@ -323,7 +320,6 @@ def main(args=None):
     num_classes = train_generator.num_classes()
     num_anchors = train_generator.num_anchors
     num_colors = train_generator.num_colors() # NOTE: ADDED
-    num_bodies = train_generator.num_bodies() # NOTE: ADDED
 
     # NOTE: ADDED
     if args.wandb:
@@ -338,7 +334,6 @@ def main(args=None):
                                         num_classes=num_classes,
                                         num_anchors=num_anchors,
                                         num_colors=num_colors,
-                                        num_bodies=num_bodies,
                                         dropout_rate=args.dropout_rate,
                                         hinge_loss=args.hinge_loss,
                                         weighted_bifpn=args.weighted_bifpn,
@@ -374,7 +369,6 @@ def main(args=None):
         'regression': smooth_l1_quad() if args.detect_quadrangle else smooth_l1(),
         'classification': focal(),
         'colors': keras.losses.CategoricalHinge() if args.hinge_loss else keras.losses.CategoricalCrossentropy(), # NOTE: ADDED
-        'bodies': keras.losses.CategoricalHinge() if args.hinge_loss else keras.losses.CategoricalCrossentropy() # NOTE: ADDED
     }, )
 
     # print(model.summary())

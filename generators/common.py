@@ -86,13 +86,7 @@ class Generator(keras.utils.Sequence):
         Number of classes in the dataset.
         """
         raise NotImplementedError('num_classes method not implemented')
-    
-    # NOTE: ADDED
-    def num_bodies(self):
-        """
-        Number of classes in the dataset.
-        """
-        raise NotImplementedError('num_classes method not implemented')
+
 
     def has_label(self, label):
         """
@@ -373,7 +367,6 @@ class Generator(keras.utils.Sequence):
             annotations_group,
             num_classes=self.num_classes(),
             num_colors=self.num_colors(),
-            num_bodies=self.num_bodies(),
             detect_quadrangle=self.detect_quadrangle
         )
         return list(batches_targets)

@@ -63,7 +63,6 @@ def _read_classes(csv_reader):
 # NOTE: ADDED COLOR AND BODY LOGIC
 def _read_quadrangle_annotations(csv_reader, classes,
     colors,
-    bodies, 
     detect_text=False):
     """
     Read annotations from the csv_reader.
@@ -74,18 +73,18 @@ def _read_quadrangle_annotations(csv_reader, classes,
     Returns:
         result: dict, dict is like {image_path: [{'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2,
                                      'x3': x3, 'y3': y3, 'x4': x4, 'y4': y4, 'class': class_name,
-                                     'color': color, 'body': body}]}
+                                     'color': color}]}
 
     """
     result = OrderedDict()
     for line, row in enumerate(csv_reader, 1):
         try:
-            img_file, x1, y1, x2, y2, x3, y3, x4, y4, class_name, color, body = row[:12]
+            img_file, x1, y1, x2, y2, x3, y3, x4, y4, class_name, color = row[:11]
             if img_file not in result:
                 result[img_file] = []
 
             # If a row contains only an image path, it's an image without annotations.
-            if (x1, y1, x2, y2, x3, y3, x4, y4, class_name, color, body) == ('', '', '', '', '', '', '', '', '', '', ''):
+            if (x1, y1, x2, y2, x3, y3, x4, y4, class_name, color) == ('', '', '', '', '', '', '', '', '', ''):
                 continue
 
             x1 = _parse(x1, int, 'line {}: malformed x1: {{}}'.format(line))
@@ -108,14 +107,12 @@ def _read_quadrangle_annotations(csv_reader, classes,
                 raise ValueError(f'line {line}: unknown class name: \'{class_name}\' (classes: {classes})')
             if color not in colors:
                 raise ValueError(f'line {line}: unknown color name: \'{class_name}\' (classes: {classes})')
-            if body not in bodies:
-                raise ValueError(f'line {line}: unknown body name: \'{class_name}\' (classes: {classes})')
 
             result[img_file].append({'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2,
-                                     'x3': x3, 'y3': y3, 'x4': x4, 'y4': y4, 'class': class_name, 'color': color, 'body': body})
+                                     'x3': x3, 'y3': y3, 'x4': x4, 'y4': y4, 'class': class_name, 'color': color})
         except ValueError:
             raise_from(ValueError(
-                f'line {line}: format should be \'img_file,x1,y1,x2,y2,x3,y3,x4,y4,class_name,color,body\' or \'img_file,,,,,\''),
+                f'line {line}: format should be \'img_file,x1,y1,x2,y2,x3,y3,x4,y4,class_name,color\' or \'img_file,,,,,\''),
                 None)
 
     return result
@@ -135,12 +132,12 @@ def _read_annotations(csv_reader, classes):
     result = OrderedDict()
     for line, row in enumerate(csv_reader, 1):
         try:
-            img_file, x1, y1, x2, y2, class_name, color, body = row[:8]
+            img_file, x1, y1, x2, y2, class_name, color = row[:7]
             if img_file not in result:
                 result[img_file] = []
 
             # If a row contains only an image path, it's an image without annotations.
-            if (x1, y1, x2, y2, class_name, color, body) == ('', '', '', '', '', '', ''):
+            if (x1, y1, x2, y2, class_name, color) == ('', '', '', '', '', ''):
                 continue
 
             x1 = _parse(x1, int, 'line {}: malformed x1: {{}}'.format(line))
@@ -151,7 +148,7 @@ def _read_annotations(csv_reader, classes):
             if class_name not in classes:
                 raise ValueError(f'line {line}: unknown class name: \'{class_name}\' (classes: {classes})')
 
-            result[img_file].append({'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2, 'class': class_name, "color": color, "body": body})
+            result[img_file].append({'x1': x1, 'y1': y1, 'x2': x2, 'y2': y2, 'class': class_name, "color": color})
         except ValueError:
             raise_from(ValueError(
                 f'line {line}: format should be \'img_file,x1,y1,x2,y2,class_name\' or \'img_file,,,,,\''),
@@ -184,7 +181,6 @@ class CSVGenerator(Generator):
             csv_data_file,
             csv_class_file,
             csv_colors_file, # NOTE: ADDED
-            csv_bodies_file, # NOTE: ADDED
             base_dir=None,
             detect_quadrangle=False,
             detect_text=False,
@@ -219,30 +215,23 @@ class CSVGenerator(Generator):
             with _open_for_csv(csv_colors_file) as file: # NOTE: ADDED
                 # class_name --> class_id
                 self.colors = _read_classes(csv.reader(file, delimiter=','))
-            with _open_for_csv(csv_bodies_file) as file: # NOTE: ADDED
-                # class_name --> class_id
-                self.bodies = _read_classes(csv.reader(file, delimiter=','))
         except ValueError as e:
             raise_from(ValueError('invalid CSV class file: {}: {}'.format(csv_class_file, e)), None)
 
         self.labels = {}
         self.color_labels = {} # NOTE: ADDED
-        self.body_labels = {} # NOTE: ADDED
         # class_id --> class_name
         for key, value in self.classes.items():
             self.labels[value] = key
         for key, value in self.colors.items(): # NOTE: ADDED
             self.color_labels[value] = key
-        for key, value in self.bodies.items(): # NOTE: ADDED
-            self.body_labels[value] = key
 
         # csv with img_path, x1, y1, x2, y2, x3, y3, x4, y4, class_name
         try:
             with _open_for_csv(csv_data_file) as file:
                 # {'img_path1':[{'x1':xx,'y1':xx,'x2':xx,'y2':xx,'x3':xx,'y3':xx,'x4':xx,'y4':xx, 'class':xx}...],...}
                 if self.detect_quadrangle:
-                    self.image_data = _read_quadrangle_annotations(csv.reader(file, delimiter=','), self.classes, self.colors, self.bodies,
-                                                                   self.detect_text)
+                    self.image_data = _read_quadrangle_annotations(csv.reader(file, delimiter=','), self.classes, self.colors, self.detect_text)
                 else:
                     self.image_data = _read_annotations(csv.reader(file, delimiter=','), self.classes)
         except ValueError as e:
@@ -268,12 +257,6 @@ class CSVGenerator(Generator):
         Number of color classes
         """
         return max(self.colors.values()) + 1
-    
-    def num_bodies(self): # NOTE: ADDED
-        """
-        Number of body classes
-        """
-        return max(self.bodies.values()) + 1
 
     def has_label(self, label):
         """
@@ -311,18 +294,6 @@ class CSVGenerator(Generator):
         """
         return self.color_labels[id_]
 
-    def body_to_id(self, body): # NOTE: ADDED
-        """
-        Map body name to body id
-        """
-        return self.bodies[body]
-
-    def id_to_body(self, id_): # NOTE: ADDED
-        """
-        Map body id to body name
-        """
-        return self.body_labels[id_]
-
     def image_path(self, image_index):
         """
         Returns the image path for image_index.
@@ -354,13 +325,11 @@ class CSVGenerator(Generator):
                        'bboxes': np.empty((0, 4), dtype=np.float32),
                        'quadrangles': np.empty((0, 4, 2), dtype=np.float32),
                        'color_labels': np.empty((0,), dtype=np.int32), # NOTE: ADDED
-                       'body_labels': np.empty((0,), dtype=np.int32) # NOTE: ADDED
                        }
 
         for idx, annot in enumerate(self.image_data[path]):
             annotations['labels'] = np.concatenate((annotations['labels'], [self.name_to_label( annot['class'])]))
             annotations['color_labels'] = np.concatenate((annotations['color_labels'], [self.color_to_id(annot['color'])])) # NOTE: ADDED
-            annotations['body_labels'] = np.concatenate((annotations['body_labels'], [self.body_to_id(annot['body'])])) # NOTE: ADDED
             if self.detect_quadrangle:
                 quadrangle = np.array([[float(annot['x1']), float(annot['y1'])],
                                        [float(annot['x2']), float(annot['y2'])],
