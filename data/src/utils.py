@@ -4,6 +4,7 @@ import os
 import shutil
 from common import input_dir, output_dir, TLHW, mappings
 from tqdm import tqdm
+from cv2 import cv2
 
 def mkdir(dir_):
     if not os.path.exists(dir_):
