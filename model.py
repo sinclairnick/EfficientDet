@@ -454,8 +454,8 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
     pyramids = [spp(layer) for  layer in features] # DONT USE FPN_FEATURES HERE!!
     final_layer = layers.Concatenate(axis=1)(pyramids)
     final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
-    final_layer = layers.Dense(final_layer.output_shape[0] // 2, name="color/dense1")(final_layer)
-    final_layer = layers.Dense(final_layer.output_shape[0] // 2, name="color/dense2")(final_layer)
+    final_layer = layers.Dense(final_layer.shape[1] // 2, name="color/dense1")(final_layer)
+    final_layer = layers.Dense(final_layer.shape[1] // 2, name="color/dense2")(final_layer)
 
     if hinge_loss: # use 
         colors = layers.Dense(num_colors, name="colors")(final_layer)
