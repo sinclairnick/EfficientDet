@@ -337,7 +337,7 @@ def main(args=None):
                                         num_colors=num_colors,
                                         dropout_rate=args.dropout_rate,
                                         hinge_loss=args.hinge_loss,
-                                        freeze_color=freeze_color,
+                                        freeze_color=args.freeze_color,
                                         weighted_bifpn=args.weighted_bifpn,
                                         freeze_bn=args.freeze_bn,
                                         detect_quadrangle=args.detect_quadrangle
@@ -366,11 +366,16 @@ def main(args=None):
     if args.gpu and len(args.gpu.split(',')) > 1:
         model = keras.utils.multi_gpu_model(model, gpus=list(map(int, args.gpu.split(','))))
 
+    if args.freeze_color:
+        color_loss = None
+    else:
+        color_loss = keras.losses.CategoricalHinge() if args.hinge_loss else keras.losses.CategoricalCrossentropy()
+
     # compile model
     model.compile(optimizer=Adam(lr=args.lr), loss={
         'regression': smooth_l1_quad() if args.detect_quadrangle else smooth_l1(),
         'classification': focal(),
-        'colors': keras.losses.CategoricalHinge() if args.hinge_loss else keras.losses.CategoricalCrossentropy(), # NOTE: ADDED
+        'colors': color_loss, # NOTE: ADDED
     }, )
 
     # print(model.summary())
