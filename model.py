@@ -419,6 +419,7 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
     num_colors=13, # NOTE: ADDED
     dropout_rate=0.1, # NOTE: ADDED
     hinge_loss=True, # NOTE: ADDED
+    freeze_color=False,
     weighted_bifpn=False, freeze_bn=False,
     score_threshold=0.01, detect_quadrangle=False, anchor_parameters=None, separable_conv=True):
     assert phi in range(7)
@@ -450,9 +451,11 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
 
     # NOTE: ADDED
     spp = SpatialPyramidPooling()
-    pyramids = [spp(layer) for layer in features] # DONT USE FPN_FEATURES HERE!!
+    pyramids = [spp(layer) for  layer in features] # DONT USE FPN_FEATURES HERE!!
     final_layer = layers.Concatenate(axis=1)(pyramids)
     final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
+    final_layer = layers.Dense(final_layer.shape[0] // 2, name="color/dense1")(final_layer)
+    final_layer = layers.Dense(final_layer.shape[0] // 2, name="color/dense2")(final_layer)
 
     if hinge_loss: # use 
         colors = layers.Dense(num_colors, name="colors")(final_layer)
@@ -462,9 +465,12 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
         colors = layers.Dense(num_colors, name="colors", activation="softmax")(final_layer)
         colors_conf = colors
 
-
     # NOTE: ADDED COLORS AND BODIES TO OUTPUTS
     model = models.Model(inputs=[image_input], outputs=[classification, regression, colors], name='efficientdet')
+
+    if freeze_color:
+        for name in ['color/dense1', 'color/dense2', 'colors']:
+            model.get_layer(name).trainable = False
 
     # apply predicted regression to anchors
     anchors = anchors_for_shape((input_size, input_size), anchor_params=anchor_parameters)
