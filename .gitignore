@@ -119,3 +119,5 @@ wandb
 nb
 data/processed
 data/raw
+
+.vscode
