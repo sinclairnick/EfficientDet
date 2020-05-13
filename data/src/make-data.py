@@ -4,7 +4,7 @@ from utils import (
     get_body_names, get_colors_names,
     align_stanford_classes, remove_extraneous,
     tlhw_to_corners, save_dataset, split, mkdir,
-    nzvd_pipeline
+    nzvd_pipeline, shuffle
     )
 from common import input_dir, output_dir, TLHW
 
@@ -24,6 +24,7 @@ if __name__ == '__main__':
     all_colors = np.unique(get_colors_names(all_data))
 
     stan = align_stanford_classes(stan, all_bodies)
+    stan = shuffle(stan)
 
     nzvd_train, nzvd_val = split(nzvd_train)
     assert abs(len(nzvd_val) * 9 - len(nzvd_train)) < 10

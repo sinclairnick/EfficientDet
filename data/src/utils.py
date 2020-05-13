@@ -3,8 +3,12 @@ import pandas as pd
 import os
 import shutil
 from common import input_dir, output_dir, TLHW, mappings
+from tqdm import tqdm
 
-
+def mkdir(dir_):
+    if not os.path.exists(dir_):
+        os.mkdir(dir_)
+        
 def remove_extraneous(data):
     new_data = data[['file', 'top', 'left', 'height', 'width', 'body-type', 'categorical-color']]
     new_data.columns = ['file', 'top', 'left', 'height', 'width', 'body', 'color']
@@ -55,10 +59,32 @@ def split(data, prop=0.9):
     split_point = int(len(data) * prop)
     return data.iloc[:split_point], data.iloc[split_point:]
 
-def copy_images(data, in_dir, out_dir):
-    for fname in data[['file']].values.squeeze():
-        shutil.copy2(f'{in_dir}/{fname}', f'{out_dir}/{fname}')
+def shuffle(data):
+    return data.sample(frac=1).reset_index(drop=True) # "drop" prevents old index from being prepended to columns
 
+def copy_images(data, in_dir, out_dir):
+    for idx, row in enumerate(tqdm(data.values)):
+        fname = row[0]
+        x1, y1, x2, y2 = row[1:5]
+        Xs = np.array([x1,x2])
+        Ys = np.array([y1,y2])
+        
+        in_path = f'{in_dir}/{fname}'
+        out_path = f'{out_dir}/{fname}'
+
+        img = cv2.imread(in_path)
+        H, W = img.shape[:2]
+
+        if (
+            not np.all(np.hstack([Xs, Ys]) >= 0) or
+            not np.all(Xs <= W) or 
+            not np.all(Ys <= H)
+        ):
+            print('Dropped row with out of bounds bbox: {}'.format(fname))
+            data.drop([idx], inplace=True)
+        cv2.imwrite(out_path, img)
+    return data
+        
 def save_dataset(data, ds_name, folder, set_name):
     out_dir = output_dir + '/' + ds_name
     img_dir = out_dir + '/' + folder
@@ -68,7 +94,7 @@ def save_dataset(data, ds_name, folder, set_name):
             os.mkdir(dir_)
 
     # copy images to outfolder
-    copy_images(data, f'{input_dir}/{ds_name}/{folder}', img_dir)
+    data = copy_images(data, f'{input_dir}/{ds_name}/{folder}', img_dir)
     
     # append folder/ to fname
     data[['file']] = folder + '/' + data[['file']]
@@ -88,10 +114,5 @@ def nzvd_pipeline(data):
     data = remove_extraneous(data)
     data = tlhw_to_corners(data)
     data = merge_4x4s(data)
-    data = merge_greys(data)
+    data = shuffle(data)
     return data
-
-def mkdir(dir_):
-    if not os.path.exists(dir_):
-        os.mkdir(dir_)
-        
