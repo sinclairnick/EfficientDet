@@ -1,11 +1,11 @@
 import pandas as pd
 import numpy as np
-from .util import (
+from utils import (
     get_body_names, get_colors_names,
     align_stanford_classes, remove_extraneous,
-    tlhw_to_corners, save_dataset, split
+    tlhw_to_corners, save_dataset, split, mkdir
     )
-from .common import input_dir, output_dir, TLHW, mkdir
+from common import input_dir, output_dir, TLHW
 
 if __name__ == '__main__':
     mkdir(output_dir)

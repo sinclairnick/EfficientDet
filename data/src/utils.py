@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import os
 import shutil
-from .common import input_dir, output_dir, TLHW, mappings
+from common import input_dir, output_dir, TLHW, mappings
 
 def remove_extraneous(data):
     new_data = data[['file', 'top', 'left', 'height', 'width', 'body-type', 'categorical-color']]
