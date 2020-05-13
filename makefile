@@ -40,7 +40,7 @@ pretrain:
     --dropout_rate ${DROPOUT_RATE} \
 	${HINGE} ${WANDB} \
     csv ${PRETRAIN_DIR}/train-annotations.csv data/processed/classes.csv data/colors.csv \
-    --val-annotations data/val-annotations.csv
+    --val-annotations ${PRETRAIN_DIR}/val-annotations.csv
 
 train:
 	python3 train.py \
@@ -57,6 +57,6 @@ train:
 	--epochs ${EPOCHS} \
 	--dropout_rate ${DROPOUT_RATE} \
 	${FLAGS} \
-	csv ${TRAIN_DIR}train-annotations.csv \
+	csv ${TRAIN_DIR}/train-annotations.csv \
 	data/classes.csv data/colors.csv \
-	--val-annotations ${TRAIN_DIR}val-annotations.csv
+	--val-annotations ${TRAIN_DIR}/val-annotations.csv
