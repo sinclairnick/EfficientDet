@@ -9,3 +9,4 @@ tensorflow==2.1
 tensorboard==2.1
 cython
 wandb
+gdown

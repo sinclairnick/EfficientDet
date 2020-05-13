@@ -1,5 +1,4 @@
 environment:
-	sudo pip3 install gdown
 	sudo apt-get install libsm6 libxrender1 libfontconfig1
 	pip3 install -r requirements.txt
 	python3 setup.py build_ext --inplace
@@ -13,6 +12,7 @@ raw-data:
 processed-data:
 	python3 data/src/make-data.py
 
+# default values for parameters
 PHI=0
 LR=0.001
 STEPS=10
