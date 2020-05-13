@@ -69,7 +69,7 @@ class Evaluate(keras.callbacks.Callback):
         logs = logs or {}
 
         # run evaluation
-        average_precisions, color_acc, body_acc = evaluate(
+        average_precisions, color_acc = evaluate(
             self.generator,
             self.active_model,
             iou_threshold=self.iou_threshold,
@@ -111,7 +111,6 @@ class Evaluate(keras.callbacks.Callback):
             'epoch': epoch,
             'mAP/total': self.mean_ap,
             'acc/color': color_acc,
-            'acc/body': body_acc
         })
 
         if self.verbose == 1:
