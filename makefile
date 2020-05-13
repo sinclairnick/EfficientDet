@@ -4,13 +4,13 @@ environment:
 	pip3 install -r requirements.txt
 	python3 setup.py build_ext --inplace
 
-dataset:
+raw-data:
 	$(shell gdown --id 1Txdl3Rjsva3ggGNZOF4y78iyTysnffh4 -O data/raw/nzvd.tar.gz) 
 	$(shell gdown --id 1S6MWdY9_fk83rCHjkb6e4AJ5183pDM8W -O data/raw/stanford-cars.tar.gz)
 	$(shell tar -C data/raw -zxvf data/raw/nzvd.tar.gz)
 	$(shell tar -C data/raw -zxvf data/raw/stanford-cars.tar.gz) 
 
-ddd:
+processed-data:
 	python3 data/src/make-data.py
 
 PHI=0
