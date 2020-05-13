@@ -37,6 +37,7 @@ pretrain:
     --steps ${STEPS} \
     --epochs ${EPOCHS} \
     --dropout_rate ${DROPOUT_RATE} \
+	--freeze_color \
 	${HINGE} ${WANDB} \
     csv ${PRETRAIN_DIR}/train_annotations.csv data/processed/classes.csv data/processed/colors.csv \
     --val-annotations ${PRETRAIN_DIR}/val_annotations.csv
