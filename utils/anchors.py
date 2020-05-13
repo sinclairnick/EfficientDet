@@ -46,7 +46,6 @@ def anchor_targets_bbox(
         annotations_group,
         num_classes,
         num_colors,
-        num_bodies,
         negative_overlap=0.4,
         positive_overlap=0.5,
         detect_quadrangle=False
@@ -79,7 +78,6 @@ def anchor_targets_bbox(
         assert ('bboxes' in annotations), "Annotations should contain bboxes."
         assert ('labels' in annotations), "Annotations should contain labels."
         assert ('color_labels' in annotations), "Annotations should contain colors." # NOTE: ADDED
-        assert ('body_labels' in annotations), "Annotations should contain bodies." # NOTE: ADDED
 
     batch_size = len(image_group)
 
@@ -89,13 +87,11 @@ def anchor_targets_bbox(
         regression_batch = np.zeros((batch_size, anchors.shape[0], 4 + 1), dtype=np.float32)
     labels_batch = np.zeros((batch_size, anchors.shape[0], num_classes + 1), dtype=np.float32)
     color_labels_batch = np.zeros((batch_size, num_colors), dtype=np.float32)
-    body_labels_batch = np.zeros((batch_size, num_bodies), dtype=np.float32)
 
     # compute labels and regression targets
     for index, (image, annotations) in enumerate(zip(image_group, annotations_group)):
         # NOTE: ADDED
         color_labels_batch[index] = keras.backend.one_hot(annotations['color_labels'][0], num_classes=num_colors)
-        body_labels_batch[index] = keras.backend.one_hot(annotations['body_labels'][0], num_classes=num_bodies)
 
         if annotations['bboxes'].shape[0]:
             # obtain indices of gt annotations with the greatest overlap
@@ -129,7 +125,7 @@ def anchor_targets_bbox(
             labels_batch[index, indices, -1] = -1
             regression_batch[index, indices, -1] = -1
 
-    return labels_batch, regression_batch, color_labels_batch, body_labels_batch
+    return labels_batch, regression_batch, color_labels_batch
 
 
 def compute_gt_annotations(
