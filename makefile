@@ -31,10 +31,11 @@ pretrain:
     --weighted-bifpn \
     --compute-val-loss \
     --batch-size 32 \
+	--random_transform \
     --snapshot imagenet \
     --phi ${PHI} \
     --lr ${LR} \
-    --steps 100 \
+    --steps 50 \
     --epochs ${EPOCHS} \
     --dropout_rate ${DROPOUT_RATE} \
 	--freeze_color \
