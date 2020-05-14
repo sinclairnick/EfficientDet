@@ -119,5 +119,6 @@ def nzvd_pipeline(data):
     data = remove_extraneous(data)
     data = tlhw_to_corners(data)
     data = merge_4x4s(data)
+    data = merge_greys(data)
     data = shuffle(data)
     return data
