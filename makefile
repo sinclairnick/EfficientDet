@@ -34,8 +34,8 @@ pretrain:
     --snapshot imagenet \
     --phi ${PHI} \
     --lr ${LR} \
-    --steps ${STEPS} \
-    --epochs 2000 \
+    --steps 100 \
+    --epochs #{EPOCHS} \
     --dropout_rate ${DROPOUT_RATE} \
 	--freeze_color \
 	${HINGE} ${WANDB} \
