@@ -30,22 +30,24 @@ def get_body_names(data):
 
 def get_colors_names(data):
     return data[['color']].values
-
+    
 def align_stanford_classes(data, all_bodies):
     data = data.values
     class_id_idx = 5
     rows = pd.read_csv(f'{input_dir}/stanford-cars/names.csv', header=None).values
-    bodies = np.array([row[0].split(' ')[-2].lower() for row in rows])
+    bodies = pd.Series([row[0].split(' ')[-2].lower() for row in rows])
     
     # coerce some names
     for old, new in mappings.items():
-        idxs = np.where(bodies == old)
-        bodies[idxs] = new
+        bodies = bodies.replace(old, new)
     
+    bodies = bodies.values
     # replace class id with class name
-    data[:,class_id_idx] = bodies[data[:,class_id_idx].astype(int) -1]
-    filtered_data = [data[i] for i in range(len(data)) if data[i,class_id_idx] in all_bodies]
+    class_ids = data[:,class_id_idx].astype(int)
+    class_names = bodies[class_ids -1]
+    data[:,class_id_idx] = class_names
 
+    filtered_data = [data[i] for i in range(len(data)) if data[i,class_id_idx] in all_bodies]
     
     dummy_color =  np.repeat('black', (len(filtered_data)))
     filtered_data = np.hstack([filtered_data, np.expand_dims(dummy_color,1)])
@@ -54,6 +56,7 @@ def align_stanford_classes(data, all_bodies):
     # set bounding boxes correctly
     filtered_data = pd.DataFrame(filtered_data)
     filtered_data.columns = ['file', 'x1', 'y1', 'x2', 'y2', 'body', 'color']
+    print(np.unique(filtered_data[['body']].values))
     return filtered_data
 
 def split(data, prop=0.9):
