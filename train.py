@@ -366,7 +366,10 @@ def main(args=None):
     if args.gpu and len(args.gpu.split(',')) > 1:
         model = keras.utils.multi_gpu_model(model, gpus=list(map(int, args.gpu.split(','))))
 
-    color_loss = keras.losses.CategoricalHinge() if args.hinge_loss else keras.losses.CategoricalCrossentropy()
+    if args.freeze_color:
+        color_loss = lambda y_pred, y_true: float(0)
+    else:
+        color_loss = keras.losses.CategoricalHinge() if args.hinge_loss else keras.losses.CategoricalCrossentropy()
 
     # compile model
     model.compile(optimizer=Adam(lr=args.lr), loss={
