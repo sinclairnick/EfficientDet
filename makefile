@@ -60,3 +60,10 @@ train:
 	csv ${TRAIN_DIR}/train_annotations.csv \
 	data/processed/classes.csv data/processed/colors.csv \
 	--val-annotations ${TRAIN_DIR}/val_annotations.csv
+
+inference:
+	python3 inference.py \
+	--phi ${PHI} \
+	--class_path data/processed/classes.csv \
+	--model_path model-best.h5 \
+	--image_dir data/processed/nzvd/test
