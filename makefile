@@ -20,6 +20,7 @@ EPOCHS=200
 HINGE=--hinge_loss
 WANDB=--wandb
 DROPOUT_RATE=0.5
+SNAPSHOT=imagenet
 
 PRETRAIN_DIR=data/processed/stanford-cars
 TRAIN_DIR=data/processed/nzvd
@@ -32,7 +33,7 @@ pretrain:
     --compute-val-loss \
     --batch-size 32 \
 	--random-transform \
-    --snapshot imagenet \
+    --snapshot ${SNAPSHOT} \
     --phi ${PHI} \
     --lr ${LR} \
     --steps 50 \
@@ -50,7 +51,7 @@ train:
 	--weighted-bifpn \
 	--compute-val-loss \
 	--batch-size 32 \
-	--snapshot imagenet \
+	--snapshot ${SNAPSHOT} \
 	--phi ${PHI} \
 	--lr ${LR} \
 	--steps ${STEPS} \
