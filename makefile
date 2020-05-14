@@ -35,7 +35,7 @@ pretrain:
     --phi ${PHI} \
     --lr ${LR} \
     --steps 100 \
-    --epochs #{EPOCHS} \
+    --epochs ${EPOCHS} \
     --dropout_rate ${DROPOUT_RATE} \
 	--freeze_color \
 	${HINGE} ${WANDB} \
