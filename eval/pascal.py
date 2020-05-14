@@ -88,7 +88,7 @@ class Evaluate(keras.callbacks.Callback):
             total_instances.append(num_annotations)
             wandb.log({
                 'epoch': epoch,
-                'mAP/' + self.generator.label_to_name(label): average_precision
+                'AP/' + self.generator.label_to_name(label): average_precision
             })
             precisions.append(average_precision)
         if self.weighted_average:
