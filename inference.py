@@ -20,7 +20,7 @@ def main():
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
     parser = argparse.ArgumentParser(description="Evaluation")
-    parser.add_argument('--phi', help="Phi model number", default=0, choices=(0, 1, 2, 3, 4, 5, 6))
+    parser.add_argument('--phi', help="Phi model number", default=0, type=int, choices=(0, 1, 2, 3, 4, 5, 6))
     parser.add_argument('--class_path', help="Csv path to detection classes", type=str, required=True)
     parser.add_argument('--score_thresh', help="Score threshold for detections", default=0.3, type=float)
     parser.add_argument('--model_path', help="Path to .h5 model file", required=True, type=str)
