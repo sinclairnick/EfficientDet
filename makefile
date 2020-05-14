@@ -14,7 +14,7 @@ processed-data:
 
 # default values for parameters
 PHI=0
-LR=0.001
+LR=0.0001
 STEPS=10
 EPOCHS=200
 HINGE=--hinge_loss
@@ -31,7 +31,7 @@ pretrain:
     --weighted-bifpn \
     --compute-val-loss \
     --batch-size 32 \
-	--random_transform \
+	--random-transform \
     --snapshot imagenet \
     --phi ${PHI} \
     --lr ${LR} \
