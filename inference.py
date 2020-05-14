@@ -4,32 +4,45 @@ import numpy as np
 import os
 import time
 import glob
+import pandas as pd
+
+import argparse
+from tensorflow import keras
 
 from model import efficientdet
 from utils import preprocess_image, postprocess_boxes
 from utils.draw_boxes import draw_boxes
 
+WEIGHTED_BIFPN = True
+IMAGE_SIZES = (512, 640, 768, 896, 1024, 1280, 1408)
 
 def main():
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
-    phi = 1
-    weighted_bifpn = True
-    model_path = 'efficientdet-d1.h5'
-    image_sizes = (512, 640, 768, 896, 1024, 1280, 1408)
-    image_size = image_sizes[phi]
-    # coco classes
-    classes = {value['id'] - 1: value['name'] for value in json.load(open('coco_90.json', 'r')).values()}
-    num_classes = 90
-    score_threshold = 0.3
-    colors = [np.random.randint(0, 256, 3).tolist() for _ in range(num_classes)]
-    _, model = efficientdet(phi=phi,
-                            weighted_bifpn=weighted_bifpn,
-                            num_classes=num_classes,
-                            score_threshold=score_threshold)
-    model.load_weights(model_path, by_name=True)
+    parser = argparse.ArgumentParser(description="Evaluation")
+    parser.add_argument('--phi', help="Phi model number", default=0, choices=(0, 1, 2, 3, 4, 5, 6))
+    parser.add_argument('--class_path', help="Csv path to detection classes", type=str, required=True)
+    parser.add_argument('--score_thresh', help="Score threshold for detections", default=0.3, type=float)
+    parser.add_argument('--model_path', help="Path to .h5 model file", required=True, type=str)
+    parser.add_argument('--image_dir', help="Path to input image directory", required=True, type=str)
+    args = parser.parse_args()
 
-    for image_path in glob.glob('datasets/VOC2007/JPEGImages/*.jpg'):
+    phi = args.phi
+    score_threshold = args.score_thresh
+    model_path = args.model_path
+    image_size = IMAGE_SIZES[phi]
+
+    classes = [x[0] for x in pd.read_csv(args.class_path).values]
+    num_classes = len(classes)
+    colors = [np.random.randint(0, 256, 3).tolist() for _ in range(num_classes)]
+    # _, model = efficientdet(phi=phi,
+    #                         weighted_bifpn=WEIGHTED_BIFPN,
+    #                         num_classes=num_classes,
+    #                         score_threshold=score_threshold)
+    # model.load_weights(model_path, by_name=True)
+    model = keras.models.load_model(model_path)
+
+    for image_path in glob.glob(f'{args.image_dir}/*.jpg'):
         image = cv2.imread(image_path)
         src_image = image.copy()
         # BGR -> RGB
