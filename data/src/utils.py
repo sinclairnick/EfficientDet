@@ -30,7 +30,7 @@ def get_body_names(data):
 
 def get_colors_names(data):
     return data[['color']].values
-    
+
 def align_stanford_classes(data, all_bodies):
     data = data.values
     class_id_idx = 5
@@ -67,6 +67,7 @@ def shuffle(data):
     return data.sample(frac=1).reset_index(drop=True) # "drop" prevents old index from being prepended to columns
 
 def copy_images(data, in_dir, out_dir):
+    data.reset_index(drop=True, inplace=True)
     for idx, row in enumerate(tqdm(data.values)):
         fname = row[0]
         x1, y1, x2, y2 = row[1:5]
