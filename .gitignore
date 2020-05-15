@@ -123,3 +123,4 @@ data/raw/nzvd/*
 data/raw/stanford-cars/*
 *.tar.gz
 .vscode
+tmp
