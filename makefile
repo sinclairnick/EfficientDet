@@ -67,4 +67,5 @@ inference:
 	--phi ${PHI} \
 	--class_path data/processed/classes.csv \
 	--model_path model-best.h5 \
-	--image_dir data/processed/nzvd/test
+	--image_dir data/processed/nzvd/test \
+	--colors_path data/processed/colors.csv
