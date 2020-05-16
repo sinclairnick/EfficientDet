@@ -79,7 +79,6 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
     all_detections = [[None for i in range(generator.num_classes()) if generator.has_label(i)] for j in
                       range(generator.size())]
 
-    color_preds = []
     for i in progressbar.progressbar(range(generator.size()), prefix='Running network: '):
         image = generator.load_image(i)
         src_image = image.copy()
@@ -90,10 +89,6 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
 
         # run network
         out = model.predict_on_batch([np.expand_dims(image, axis=0)]) # NOTE: ADDED/CHANGED THE BELOW TO ACCOUNT FOR CLASS PREDICTIONS
-        
-        color_pred = np.array(out[1])
-        color_preds.append(color_pred)
-
 
         boxes, scores, *_, labels = out[0]
 
@@ -143,12 +138,7 @@ def _get_detections(generator, model, score_threshold=0.05, max_detections=100, 
         for class_id in range(generator.num_classes()):
             all_detections[i][class_id] = detections[detections[:, -1] == class_id, :-1]
 
-    # NOTE: ADDED EVAL FOR COLOR/BODY ACCURACY
-    color_preds = np.array(color_preds)
-    color_preds = np.array([np.argmax(row) for row in color_preds])
-
-
-    return all_detections, color_preds
+    return all_detections
 
 
 def _get_annotations(generator):
@@ -167,14 +157,10 @@ def _get_annotations(generator):
     """
     all_annotations = [[None for i in range(generator.num_classes())] for j in range(generator.size())]
 
-    color_labels = []
 
     for i in progressbar.progressbar(range(generator.size()), prefix='Parsing annotations: '):
         # load the annotations
         annotations = generator.load_annotations(i)
-
-        color_label = annotations["color_labels"]
-        color_labels.append(color_label[0])
 
         # copy detections to all_annotations
         for label in range(generator.num_classes()):
@@ -183,9 +169,7 @@ def _get_annotations(generator):
 
             all_annotations[i][label] = annotations['bboxes'][annotations['labels'] == label, :].copy()
 
-    color_labels = np.array(color_labels)
-
-    return all_annotations, color_labels
+    return all_annotations
 
 
 def evaluate(
@@ -213,12 +197,9 @@ def evaluate(
 
     """
     # gather all detections and annotations
-    all_detections, color_preds = _get_detections(generator, model, score_threshold=score_threshold, max_detections=max_detections,
+    all_detections = _get_detections(generator, model, score_threshold=score_threshold, max_detections=max_detections,
                                      visualize=visualize)
-    all_annotations, color_labels = _get_annotations(generator)
-
-    color_acc = np.mean(np.equal(color_preds, color_labels))
-
+    all_annotations = _get_annotations(generator)
 
     average_precisions = {}
     num_tp = 0
@@ -291,7 +272,7 @@ def evaluate(
         average_precisions[label] = average_precision, num_annotations
     print('num_fp={}, num_tp={}'.format(num_fp, num_tp))
 
-    return average_precisions, color_acc
+    return average_precisions
 
 
 if __name__ == '__main__':
