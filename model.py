@@ -415,11 +415,10 @@ class ClassNet(models.Model):
         return outputs
 
 
-def efficientdet(phi, num_classes=20, num_anchors=9, 
+def efficientLPR(phi, num_classes=20, num_anchors=9, 
     num_colors=13, # NOTE: ADDED
     dropout_rate=0.1, # NOTE: ADDED
     hinge_loss=True, # NOTE: ADDED
-    freeze_color=False,
     weighted_bifpn=False, freeze_bn=False,
     score_threshold=0.01, detect_quadrangle=False, anchor_parameters=None, separable_conv=True):
     assert phi in range(7)
@@ -431,7 +430,13 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
     w_head = w_bifpn
     d_head = d_heads[phi]
     backbone_cls = backbones[phi]
+
     features = backbone_cls(input_tensor=image_input, freeze_bn=freeze_bn)
+    backbone = models.Model(image_input, features, name="backbone")
+
+    features = backbone(image_input)
+
+    features = [layers.Input(tf.squeeze(feature, axis=0).shape) for feature in features]
     if weighted_bifpn:
         fpn_features = features
         for i in range(d_bifpn):
@@ -440,6 +445,7 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
         fpn_features = features
         for i in range(d_bifpn):
             fpn_features = build_BiFPN(fpn_features, w_bifpn, i, freeze_bn=freeze_bn)
+
     box_net = BoxNet(w_head, d_head, num_anchors=num_anchors, separable_conv=separable_conv, freeze_bn=freeze_bn,
                      detect_quadrangle=detect_quadrangle, name='box_net')
     class_net = ClassNet(w_head, d_head, num_classes=num_classes, num_anchors=num_anchors,
@@ -449,9 +455,10 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
     regression = [box_net([feature, i]) for i, feature in enumerate(fpn_features)]
     regression = layers.Concatenate(axis=1, name='regression')(regression)
 
-    # NOTE: ADDED
+    car_detection = models.Model(features, outputs=[classification, regression], name="car-det")
+
     spp = SpatialPyramidPooling()
-    pyramids = [spp(layer) for  layer in features] # DONT USE FPN_FEATURES HERE!!
+    pyramids = [spp(feature) for feature in features]
     final_layer = layers.Concatenate(axis=1)(pyramids)
     final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
     final_layer = layers.Dense(final_layer.shape[1] // 2, name="color/dense1")(final_layer)
@@ -465,12 +472,16 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
         colors = layers.Dense(num_colors, name="colors", activation="softmax")(final_layer)
         colors_conf = colors
 
-    # NOTE: ADDED COLORS AND BODIES TO OUTPUTS
-    model = models.Model(inputs=[image_input], outputs=[classification, regression, colors], name='efficientdet')
+    color_classifier = models.Model(features, outputs=colors, name="color-class")
 
-    if freeze_color:
-        for name in ['color/dense1', 'color/dense2', 'colors']:
-            model.get_layer(name).trainable = False
+    bb_out = backbone(image_input)
+    classification, regression = car_detection(bb_out)
+    color_preds = color_classifier(bb_out)
+
+    # car_out = [classification, regression]
+    model = models.Model(inputs=[image_input], outputs=[classification, regression, color_preds], name="efficientlpr")
+
+    # model = models.Model(inputs=[image_input], outputs=[classification, regression, colors], name='efficientdet')
 
     # apply predicted regression to anchors
     anchors = anchors_for_shape((input_size, input_size), anchor_params=anchor_parameters)
@@ -497,4 +508,4 @@ def efficientdet(phi, num_classes=20, num_anchors=9,
 
 
 if __name__ == '__main__':
-    x, y = efficientdet(1)
+    x, y = efficientLPR(1)
