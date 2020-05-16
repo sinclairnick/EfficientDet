@@ -31,7 +31,7 @@ from tensorflow.keras.optimizers import Adam, SGD
 
 from augmentor.color import VisualEffect
 from augmentor.misc import MiscEffect
-from model import efficientdet
+from model import efficientLPR
 from losses import smooth_l1, focal, smooth_l1_quad
 from efficientnet import BASE_WEIGHTS_PATH, WEIGHTS_HASHES
 
@@ -152,12 +152,8 @@ def create_generators(args):
     }
 
     # create random transform generator for augmenting training data
-    if args.random_transform:
-        misc_effect = MiscEffect()
-        visual_effect = VisualEffect()
-    else:
-        misc_effect = None
-        visual_effect = None
+    misc_effect = MiscEffect() if args.random_transform else None
+    visual_effect = VisualEffect() if args.random_transform else None
 
     if args.dataset_type == 'pascal':
         from generators.pascal import PascalVocGenerator
@@ -272,6 +268,7 @@ def parse_args(args):
     parser.add_argument('--wandb', help='Whether to use wandb syncing', default=False, action="store_true")
     parser.add_argument('--lr', help='Learning rate', default=1e-3, type=float)
     parser.add_argument('--freeze_color', help='Whether to freeze color classification', default=False, action="store_true")
+    parser.add_argument('--freeze_body', help='Whether to freeze car detection', default=False, action="store_true")
 
     csv_parser.add_argument('--val-annotations-path',
                             help='Path to CSV file containing annotations for validation (optional).')
@@ -331,13 +328,12 @@ def main(args=None):
         os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
 
 
-    model, prediction_model = efficientdet(args.phi,
+    model, prediction_model = efficientLPR(args.phi,
                                         num_classes=num_classes,
                                         num_anchors=num_anchors,
                                         num_colors=num_colors,
                                         dropout_rate=args.dropout_rate,
                                         hinge_loss=args.hinge_loss,
-                                        freeze_color=args.freeze_color,
                                         weighted_bifpn=args.weighted_bifpn,
                                         freeze_bn=args.freeze_bn,
                                         detect_quadrangle=args.detect_quadrangle
@@ -366,19 +362,33 @@ def main(args=None):
     if args.gpu and len(args.gpu.split(',')) > 1:
         model = keras.utils.multi_gpu_model(model, gpus=list(map(int, args.gpu.split(','))))
 
+    dummy_loss = lambda y_pred, y_true: float(0)
+
     if args.freeze_color:
-        color_loss = lambda y_pred, y_true: float(0)
+        color_loss = dummy_loss
+        for layer in model.get_layer('color-class').layers:
+            layer.trainable = False
     else:
         color_loss = keras.losses.CategoricalHinge() if args.hinge_loss else keras.losses.CategoricalCrossentropy()
 
+    if args.freeze_body:
+        regression_loss, classification_loss = dummy_loss, dummy_loss
+        for layer in model.get_layer('car-det').layers:
+            layer.trainable = False
+    else:
+        regression_loss = smooth_l1_quad() if args.detect_quadrangle else smooth_l1()
+        classification_loss = focal()
+
+
     # compile model
     model.compile(optimizer=Adam(lr=args.lr), loss={
-        'regression': smooth_l1_quad() if args.detect_quadrangle else smooth_l1(),
-        'classification': focal(),
-        'colors': color_loss, # NOTE: ADDED
-    }, )
-
-    # print(model.summary())
+        'regression': regression_loss,
+        'classification': classification_loss,
+        'colors': color_loss,
+    },
+    metrics={
+        'colors': 'categorical_accuracy'
+    })
 
     # create the callbacks
     callbacks = create_callbacks(
