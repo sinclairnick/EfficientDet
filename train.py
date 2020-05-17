@@ -293,7 +293,7 @@ def parse_args(args):
     parser.add_argument('--no-snapshots', help='Disable saving snapshots.', dest='snapshots', action='store_false')
     parser.add_argument('--no-evaluation', help='Disable per epoch evaluation.', dest='evaluation',
                         action='store_false')
-    parser.add_argument('--random-transform', help='Randomly transform image and annotations.', action='store_true')
+    parser.add_argument('--random_transform', help='Randomly transform image and annotations.', action='store_true')
     parser.add_argument('--compute-val-loss', help='Compute validation loss during training', dest='compute_val_loss',
                         action='store_true')
 
@@ -353,42 +353,41 @@ def main(args=None):
             print('Loading model, this may take a second...')
             model.load_weights(args.snapshot, by_name=True)
 
-    # freeze backbone layers
-    if args.freeze_backbone:
-        # 227, 329, 329, 374, 464, 566, 656
-        for i in range(1, [227, 329, 329, 374, 464, 566, 656][args.phi]):
-            model.layers[i].trainable = False
 
     if args.gpu and len(args.gpu.split(',')) > 1:
         model = keras.utils.multi_gpu_model(model, gpus=list(map(int, args.gpu.split(','))))
 
     dummy_loss = lambda y_pred, y_true: float(0)
+    
+    # freeze backbone layers
+    if args.freeze_backbone:
+        model.get_layer('backbone').trainable = False
 
     if args.freeze_color:
         color_loss = dummy_loss
-        for layer in model.get_layer('color-class').layers:
-            layer.trainable = False
+        model.get_layer('color-class').trainable = False
     else:
         color_loss = keras.losses.CategoricalHinge() if args.hinge_loss else keras.losses.CategoricalCrossentropy()
 
     if args.freeze_body:
         regression_loss, classification_loss = dummy_loss, dummy_loss
-        for layer in model.get_layer('car-det').layers:
-            layer.trainable = False
+        model.get_layer('car-det').trainable = False
     else:
         regression_loss = smooth_l1_quad() if args.detect_quadrangle else smooth_l1()
         classification_loss = focal()
 
+    print('Frozen?')
+    print('Body detection: ', not model.get_layer('car-det').trainable)
+    print('Color classification: ', not model.get_layer('color-class').trainable)
+
 
     # compile model
-    model.compile(optimizer=Adam(lr=args.lr), loss={
-        'regression': regression_loss,
-        'classification': classification_loss,
-        'colors': color_loss,
-    },
-    metrics={
-        'colors': 'categorical_accuracy'
-    })
+    model.compile(optimizer=Adam(lr=args.lr),
+        loss=[classification_loss, regression_loss, color_loss],
+        metrics={
+            'color-class': 'categorical_accuracy'
+        }
+    )
 
     # create the callbacks
     callbacks = create_callbacks(
