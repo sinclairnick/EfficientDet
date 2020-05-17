@@ -39,7 +39,7 @@ pretrain-body:
     --snapshot ${SNAPSHOT} \
     --phi ${PHI} \
     --lr ${LR} \
-    --steps 1 \
+    --steps 50 \
     --epochs ${EPOCHS} \
     --dropout_rate ${DROPOUT_RATE} \
 	--freeze_color \
