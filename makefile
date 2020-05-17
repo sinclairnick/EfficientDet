@@ -6,8 +6,10 @@ environment:
 raw-data:
 	$(shell gdown --id 1Txdl3Rjsva3ggGNZOF4y78iyTysnffh4 -O data/raw/nzvd.tar.gz) 
 	$(shell gdown --id 1S6MWdY9_fk83rCHjkb6e4AJ5183pDM8W -O data/raw/stanford-cars.tar.gz)
+	$(shell gdown--id 1CKIalDJQXKZ2bGGQAjftk7FihcQaWx21 -O data/raw/car-colors.tar.gz)
 	$(shell tar -C data/raw -zxvf data/raw/nzvd.tar.gz)
 	$(shell tar -C data/raw -zxvf data/raw/stanford-cars.tar.gz) 
+	$(shell tar -C data/raw -zxvf data/raw/car-colors.tar.gz) 
 
 processed-data:
 	python3 data/src/make-data.py
@@ -25,21 +27,40 @@ SNAPSHOT=imagenet
 PRETRAIN_DIR=data/processed/stanford-cars
 TRAIN_DIR=data/processed/nzvd
 
-pretrain:
+pretrain-body:
 	python3 train.py \
     --gpu 0 \
     --freeze-backbone \
     --weighted-bifpn \
     --compute-val-loss \
     --batch-size 32 \
-	--random-transform \
+	--random_transform \
     --snapshot ${SNAPSHOT} \
     --phi ${PHI} \
     --lr ${LR} \
-    --steps 50 \
+    --steps 1 \
     --epochs ${EPOCHS} \
     --dropout_rate ${DROPOUT_RATE} \
 	--freeze_color \
+	${HINGE} ${WANDB} \
+    csv ${PRETRAIN_DIR}/train_annotations.csv data/processed/classes.csv data/processed/colors.csv \
+    --val-annotations ${PRETRAIN_DIR}/val_annotations.csv
+
+pretrain-color:
+	python3 train.py \
+    --gpu 0 \
+    --freeze-backbone \
+    --weighted-bifpn \
+    --compute-val-loss \
+    --batch-size 32 \
+	--random_transform \
+    --snapshot ${SNAPSHOT} \
+    --phi ${PHI} \
+    --lr ${LR} \
+    --steps 40 \
+    --epochs ${EPOCHS} \
+    --dropout_rate ${DROPOUT_RATE} \
+	--freeze_body \
 	${HINGE} ${WANDB} \
     csv ${PRETRAIN_DIR}/train_annotations.csv data/processed/classes.csv data/processed/colors.csv \
     --val-annotations ${PRETRAIN_DIR}/val_annotations.csv
