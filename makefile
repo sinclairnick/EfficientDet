@@ -19,8 +19,6 @@ PHI=0
 LR=0.0001
 STEPS=10
 EPOCHS=200
-HINGE=--hinge_loss
-WANDB=--wandb
 DROPOUT_RATE=0.5
 SNAPSHOT=imagenet
 
@@ -43,7 +41,7 @@ pretrain-body:
     --epochs ${EPOCHS} \
     --dropout_rate ${DROPOUT_RATE} \
 	--freeze_color \
-	${HINGE} ${WANDB} \
+	--wandb \
     csv ${BODY_DIR}/train_annotations.csv data/processed/classes.csv data/processed/colors.csv \
     --val-annotations ${BODY_DIR}/val_annotations.csv
 
@@ -62,7 +60,8 @@ pretrain-color:
     --epochs ${EPOCHS} \
     --dropout_rate ${DROPOUT_RATE} \
 	--freeze_body \
-	${HINGE} ${WANDB} \
+	--wandb \
+	--no-evalution \
     csv ${COLOR_DIR}/train_annotations.csv data/processed/classes.csv data/processed/colors.csv \
     --val-annotations ${COLOR_DIR}/val_annotations.csv
 
