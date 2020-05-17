@@ -24,7 +24,8 @@ WANDB=--wandb
 DROPOUT_RATE=0.5
 SNAPSHOT=imagenet
 
-PRETRAIN_DIR=data/processed/stanford-cars
+BODY_DIR=data/processed/stanford-cars
+COLOR_DIR=data/processed/car-colors
 TRAIN_DIR=data/processed/nzvd
 
 pretrain-body:
@@ -43,8 +44,8 @@ pretrain-body:
     --dropout_rate ${DROPOUT_RATE} \
 	--freeze_color \
 	${HINGE} ${WANDB} \
-    csv ${PRETRAIN_DIR}/train_annotations.csv data/processed/classes.csv data/processed/colors.csv \
-    --val-annotations ${PRETRAIN_DIR}/val_annotations.csv
+    csv ${BODY_DIR}/train_annotations.csv data/processed/classes.csv data/processed/colors.csv \
+    --val-annotations ${BODY_DIR}/val_annotations.csv
 
 pretrain-color:
 	python3 train.py \
@@ -62,8 +63,8 @@ pretrain-color:
     --dropout_rate ${DROPOUT_RATE} \
 	--freeze_body \
 	${HINGE} ${WANDB} \
-    csv ${PRETRAIN_DIR}/train_annotations.csv data/processed/classes.csv data/processed/colors.csv \
-    --val-annotations ${PRETRAIN_DIR}/val_annotations.csv
+    csv ${COLOR_DIR}/train_annotations.csv data/processed/classes.csv data/processed/colors.csv \
+    --val-annotations ${COLOR_DIR}/val_annotations.csv
 
 train:
 	python3 train.py \
