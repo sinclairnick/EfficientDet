@@ -16,7 +16,7 @@ processed-data:
 
 # default values for parameters
 PHI=0
-LR=0.0001
+LR=0.001
 STEPS=10
 EPOCHS=200
 DROPOUT_RATE=0.5
