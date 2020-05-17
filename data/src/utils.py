@@ -22,7 +22,7 @@ def tlhw_to_corners(data):
     assert np.all(x1 < x2) and np.all(y1 < y2), "All x1 must be < x2 and all y1 must be < y2"
     assert np.all(x1 >= 0) and np.all(y1 >= 0), "All x1 and y1 must be >= 0"
     data[TLHW] =  np.hstack([x1,y1,x2,y2])
-    data.columns = ['file', 'x1', 'y1', 'x2', 'y2', 'body', 'color']
+    data.columns = OUT_HEADER
     return data
 
 def get_body_names(data):
@@ -55,9 +55,9 @@ def align_stanford_classes(data, all_bodies):
 
     # set bounding boxes correctly
     filtered_data = pd.DataFrame(filtered_data)
-    filtered_data.columns = ['file', 'x1', 'y1', 'x2', 'y2', 'body', 'color']
-    print(np.unique(filtered_data[['body']].values))
+    filtered_data.columns = OUT_HEADER
     return filtered_data
+
 
 def split(data, prop=0.9):
     split_point = int(len(data) * prop)
@@ -66,11 +66,24 @@ def split(data, prop=0.9):
 def shuffle(data):
     return data.sample(frac=1).reset_index(drop=True) # "drop" prevents old index from being prepended to columns
 
+def get_colored_cars(all_colors):
+    fnames = np.expand_dims(os.listdir(f'{input_dir}/car-colors/train'),1 )
+    # set dummy bbox such that [x1,y1] < [x2,y2]
+    dummy_bbox = np.expand_dims([0,0,1,1], 0)
+    dummy_bboxes = np.repeat(dummy_bbox, (len(fnames)), 0)
+    dummy_body = np.expand_dims(np.repeat('coupe', (len(fnames))),1)
+    colors = np.expand_dims(list(map(lambda x: x[0].split('_')[0], fnames)), 1)
+    assert np.all([x in all_colors for x in colors]), "All colors must be one of {}".format(all_colors)
+    data = pd.DataFrame(np.hstack([fnames, dummy_bboxes, dummy_body, colors]))
+    data.columns = OUT_HEADER
+    return data
+
+
 def copy_images(data, in_dir, out_dir):
     data.reset_index(drop=True, inplace=True)
     for idx, row in enumerate(tqdm(data.values)):
         fname = row[0]
-        x1, y1, x2, y2 = row[1:5]
+        x1, y1, x2, y2 = [int(x) for x in row[1:5]]
         Xs = np.array([x1,x2])
         Ys = np.array([y1,y2])
         

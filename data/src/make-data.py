@@ -4,7 +4,7 @@ from utils import (
     get_body_names, get_colors_names,
     align_stanford_classes, remove_extraneous,
     tlhw_to_corners, save_dataset, split, mkdir,
-    nzvd_pipeline, shuffle
+    nzvd_pipeline, shuffle, get_colored_cars
     )
 from common import input_dir, output_dir, TLHW
 
@@ -26,11 +26,17 @@ if __name__ == '__main__':
     stan = align_stanford_classes(stan, all_bodies)
     stan = shuffle(stan)
 
+    colored_cars = get_colored_cars(all_colors)
+    colored_cars = shuffle(colored_cars)
+
     nzvd_train, nzvd_val = split(nzvd_train)
     assert abs(len(nzvd_val) * 9 - len(nzvd_train)) < 10
 
     stan_train, stan_val = split(stan)
     assert abs(len(stan_val) * 9 - len(stan_train)) < 10
+
+    colored_train, colored_val = split(colored_cars)
+    assert abs(len(colored_val) * 9 - len(colored_train)) < 10
 
     assert np.all(np.equal(nzvd_train.columns, nzvd_test.columns)), "Column names must match"
     assert np.all(np.equal(nzvd_train.columns, stan.columns)), "Column names must match"
@@ -40,6 +46,8 @@ if __name__ == '__main__':
     save_dataset(nzvd_test, 'nzvd', 'test', 'test')
     save_dataset(stan_train, 'stanford-cars', 'train', 'train')
     save_dataset(stan_val, 'stanford-cars', 'train', 'val')
+    save_dataset(colored_train, 'car-colors', 'train', 'train')
+    save_dataset(colored_val, 'car-colors', 'train', 'val')
 
     classes_out = pd.DataFrame(np.stack([all_bodies, list(range(len(all_bodies)))], axis=1))
     colors_out = pd.DataFrame(np.stack([all_colors, list(range(len(all_colors)))], axis=1))
