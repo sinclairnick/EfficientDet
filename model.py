@@ -461,16 +461,13 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     pyramids = [spp(feature) for feature in features]
     final_layer = layers.Concatenate(axis=1)(pyramids)
     final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
-    final_layer = layers.Dense(final_layer.shape[1] // 2, name="color/dense1")(final_layer)
-    final_layer = layers.Dense(final_layer.shape[1] // 2, name="color/dense2")(final_layer)
+    final_layer = layers.Dense(final_layer.shape[1] // 2)(final_layer)
+    final_layer = layers.Dense(final_layer.shape[1])(final_layer)
 
     if hinge_loss: # use 
         colors = layers.Dense(num_colors, name="colors")(final_layer)
-        # Note that the below means the validation and training loss scales will differ !
-        colors_conf = layers.Activation('softmax')(colors)
     else: # use softmax activation
         colors = layers.Dense(num_colors, name="colors", activation="softmax")(final_layer)
-        colors_conf = colors
 
     color_classifier = models.Model(features, outputs=colors, name="color-class")
 
@@ -501,8 +498,12 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
             name='filtered_detections',
             score_threshold=score_threshold
         )([boxes, classification])
+
+    colors_conf = layers.Activation('softmax')(color_preds) if hinge_loss else color_preds
     
     prediction_model = models.Model(inputs=[image_input], outputs=[detections, colors_conf])
+
+    tf.keras.utils.plot_model(model, to_file="./model.png")
 
     return model, prediction_model
 
