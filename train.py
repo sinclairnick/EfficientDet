@@ -114,7 +114,7 @@ def create_callbacks(training_model, prediction_model, validation_generator, arg
                 else f'{args.dataset_type}_{{epoch:02d}}_{{loss:.4f}}.h5'
             ),
             verbose=1,
-            save_weights_only=True,
+            save_weights_only=False,
             # save_best_only=True,
             # monitor="mAP",
             # mode='max'
