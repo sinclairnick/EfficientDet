@@ -475,7 +475,6 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
         colors = layers.Dense(num_colors, name="colors", activation="softmax")(final_layer)
 
     color_classifier = models.Model(features, outputs=colors, name="color-class")
-    tf.keras.utils.plot_model(color_classifier, to_file="color-class.png", show_shapes=True)
 
     bb_out = backbone(image_input)
     classification, regression = car_detection(bb_out)
