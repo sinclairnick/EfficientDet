@@ -437,7 +437,7 @@ def max_pool_2d_nxn_regions(inputs, output_size: int, mode: str):
 def SpatialPyramidPooling():
     return keras.layers.Lambda(lambda x: spatial_pyramid_pool(x), name="spatial_pyramid")
 
-def spatial_pyramid_pool(inputs, dimensions=[2,1], mode='max', implementation='kaiming'):
+def spatial_pyramid_pool(inputs, dimensions=[2], mode='max', implementation='kaiming'):
     """
     Performs spatial pyramid pooling (SPP) over the input.
     It will turn a 2D input of arbitrary size into an output of fixed
