@@ -1,9 +1,9 @@
-environment:
+environment: # sometimes have to run this twice
 	sudo apt-get install libsm6 libxrender1 libfontconfig1
 	pip3 install -r requirements.txt
 	python3 setup.py build_ext --inplace
 
-raw-data:
+raw-data: # gdown may require sudo install
 	$(shell gdown --id 1Txdl3Rjsva3ggGNZOF4y78iyTysnffh4 -O data/raw/nzvd.tar.gz) 
 	$(shell gdown --id 1S6MWdY9_fk83rCHjkb6e4AJ5183pDM8W -O data/raw/stanford-cars.tar.gz)
 	$(shell gdown --id 1n_UYblKkyGB4BXxPDC3eOg_fILFLjiui -O data/raw/car-colors.tar.gz)
