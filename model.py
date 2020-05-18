@@ -503,8 +503,6 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     
     prediction_model = models.Model(inputs=[image_input], outputs=[detections, colors_conf])
 
-    tf.keras.utils.plot_model(model, to_file="./model.png")
-
     return model, prediction_model
 
 
