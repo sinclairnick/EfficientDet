@@ -460,9 +460,14 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     spp = SpatialPyramidPooling()
     pyramids = [spp(feature) for feature in features]
     final_layer = layers.Concatenate(axis=1)(pyramids)
-    final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
+
     final_layer = layers.Dense(final_layer.shape[1] // 2)(final_layer)
-    final_layer = layers.Dense(final_layer.shape[1])(final_layer)
+    final_layer = layers.Activation('relu')(final_layer)
+    final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
+
+    final_layer = layers.Dense(final_layer.shape[1] // 2)(final_layer)
+    final_layer = layers.Activation('relu')(final_layer)
+    final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
 
     if hinge_loss: # use 
         colors = layers.Dense(num_colors, name="colors")(final_layer)
@@ -470,6 +475,7 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
         colors = layers.Dense(num_colors, name="colors", activation="softmax")(final_layer)
 
     color_classifier = models.Model(features, outputs=colors, name="color-class")
+    tf.keras.utils.plot_model(color_classifier, to_file="color-class.png", show_shapes=True)
 
     bb_out = backbone(image_input)
     classification, regression = car_detection(bb_out)
