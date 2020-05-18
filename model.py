@@ -462,19 +462,17 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     final_layer = layers.Concatenate(axis=1)(pyramids)
 
     final_layer = layers.Dense(final_layer.shape[1] // 2)(final_layer)
-    final_layer = layers.Activation('relu')(final_layer)
-    final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
-
-    final_layer = layers.Dense(final_layer.shape[1] // 2)(final_layer)
-    final_layer = layers.Activation('relu')(final_layer)
+    final_layer = layers.Activation(lambda x: tf.nn.swish(x))(final_layer)
     final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
 
     if hinge_loss: # use 
-        colors = layers.Dense(num_colors, name="colors")(final_layer)
+        colors = layers.Dense(num_colors)(final_layer)
+        colors = layers.Activation('tanh')
     else: # use softmax activation
-        colors = layers.Dense(num_colors, name="colors", activation="softmax")(final_layer)
+        colors = layers.Dense(num_colors)(final_layer)
+        colors = layers.Activation('softmax')(colors)
 
-    color_classifier = models.Model(features, outputs=colors, name="color-class")
+    color_classifier = models.Model(features, outputs=colors, name="color")
 
     bb_out = backbone(image_input)
     classification, regression = car_detection(bb_out)
