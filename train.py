@@ -32,7 +32,7 @@ from tensorflow.keras.optimizers import Adam, SGD
 from augmentor.color import VisualEffect
 from augmentor.misc import MiscEffect
 from model import efficientLPR
-from losses import smooth_l1, focal, smooth_l1_quad, color_focal_loss
+from losses import smooth_l1, focal, smooth_l1_quad
 from efficientnet import BASE_WEIGHTS_PATH, WEIGHTS_HASHES
 
 # NOTE: ADDED
