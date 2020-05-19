@@ -464,12 +464,13 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     final_layer = layers.Concatenate(axis=1)(pyramids)
 
     final_layer = layers.Dense(final_layer.shape[1] // 2)(final_layer)
-    final_layer = layers.Activation(lambda x: tf.nn.swish(x))(final_layer)
+    final_layer = layers.Activation('relu')(final_layer)
     final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
-    
-    final_layer = layers.Dense(final_layer.shape[1])(final_layer)
-    final_layer = layers.Activation(lambda x: tf.nn.swish(x))(final_layer)
+
+    final_layer = layers.Dense(final_layer.shape[1] // 2)(final_layer)
+    final_layer = layers.Activation('relu')(final_layer)
     final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
+
 
     if hinge_loss: # use 
         colors = layers.Dense(num_colors)(final_layer)
