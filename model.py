@@ -464,10 +464,10 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     final_layer = layers.Concatenate(axis=1)(pyramids)
     final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
 
-    final_layer = layers.Dense(final_layer.shape[1] // 2)(final_layer)
+    final_layer = layers.Dense(final_layer.shape[1] // 2, kernel_initializer='he_uniform')(final_layer)
     final_layer = layers.Activation('relu')(final_layer)
-    
-    final_layer = layers.Dense(final_layer.shape[1])(final_layer)
+
+    final_layer = layers.Dense(final_layer.shape[1], kernel_initializer='he_uniform')(final_layer)
     final_layer = layers.Activation('relu')(final_layer)
 
 
