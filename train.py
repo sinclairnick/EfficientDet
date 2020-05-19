@@ -367,7 +367,7 @@ def main(args=None):
         color_loss = dummy_loss
         model.get_layer('color').trainable = False
     else:
-        color_loss = keras.losses.CategoricalHinge() if args.hinge_loss else keras.losses.CategoricalCrossentropy()
+        color_loss = keras.losses.CategoricalHinge() if args.hinge_loss else focal()
 
     if args.freeze_body:
         regression_loss, classification_loss = dummy_loss, dummy_loss
