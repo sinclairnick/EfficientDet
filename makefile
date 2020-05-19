@@ -48,7 +48,6 @@ pretrain-body:
 pretrain-color:
 	python3 train.py \
     --gpu 0 \
-    --freeze-backbone \
     --weighted-bifpn \
     --compute-val-loss \
     --batch-size 32 \
