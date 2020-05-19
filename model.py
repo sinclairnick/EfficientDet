@@ -436,6 +436,7 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
 
     features = backbone(image_input)
 
+    # ----------------------------- OBJECT DETECTION ----------------------------- #
     features = [layers.Input(tf.squeeze(feature, axis=0).shape) for feature in features]
     if weighted_bifpn:
         fpn_features = features
@@ -457,11 +458,16 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
 
     car_detection = models.Model(features, outputs=[classification, regression], name="car-det")
 
+    # ------------------------------ COLOR DETECTION ----------------------------- #
     spp = SpatialPyramidPooling()
     pyramids = [spp(feature) for feature in features]
     final_layer = layers.Concatenate(axis=1)(pyramids)
 
     final_layer = layers.Dense(final_layer.shape[1] // 2)(final_layer)
+    final_layer = layers.Activation(lambda x: tf.nn.swish(x))(final_layer)
+    final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
+    
+    final_layer = layers.Dense(final_layer.shape[1])(final_layer)
     final_layer = layers.Activation(lambda x: tf.nn.swish(x))(final_layer)
     final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
 
