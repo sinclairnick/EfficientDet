@@ -32,7 +32,7 @@ from tensorflow.keras.optimizers import Adam, SGD
 from augmentor.color import VisualEffect
 from augmentor.misc import MiscEffect
 from model import efficientLPR
-from losses import smooth_l1, focal, smooth_l1_quad
+from losses import smooth_l1, focal, smooth_l1_quad, color_focal_loss
 from efficientnet import BASE_WEIGHTS_PATH, WEIGHTS_HASHES
 
 # NOTE: ADDED
@@ -367,7 +367,7 @@ def main(args=None):
         color_loss = dummy_loss
         model.get_layer('color').trainable = False
     else:
-        color_loss = keras.losses.CategoricalHinge() if args.hinge_loss else focal()
+        color_loss = keras.losses.CategoricalHinge() if args.hinge_loss else color_focal_loss()
 
     if args.freeze_body:
         regression_loss, classification_loss = dummy_loss, dummy_loss
