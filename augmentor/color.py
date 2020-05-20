@@ -98,7 +98,7 @@ class VisualEffect:
 
     def __init__(
             self,
-            color_factor=0.90,
+            color_factor=None,
             contrast_factor=None,
             brightness_factor=None,
             sharpness_factor=None,
