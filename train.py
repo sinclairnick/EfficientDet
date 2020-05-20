@@ -365,7 +365,7 @@ def main(args=None):
 
     if args.freeze_color:
         color_loss = dummy_loss
-        model.get_layer('color').trainable = False
+        model.get_layer('color-class').trainable = False
     else:
         color_loss = keras.losses.CategoricalHinge() if args.hinge_loss else keras.losses.CategoricalCrossentropy()
 
@@ -378,14 +378,14 @@ def main(args=None):
 
     print('Frozen?')
     print('Body detection: ', not model.get_layer('car-det').trainable)
-    print('Color classification: ', not model.get_layer('color').trainable)
+    print('Color classification: ', not model.get_layer('color-class').trainable)
 
 
     # compile model
     model.compile(optimizer=Adam(lr=args.lr),
         loss=[classification_loss, regression_loss, color_loss],
         metrics={
-            'color': ['categorical_accuracy', keras.metrics.Precision(), keras.metrics.Recall()]
+            'color-class': 'categorical_accuracy'
         }
     )
 
