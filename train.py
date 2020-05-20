@@ -152,7 +152,7 @@ def create_generators(args):
     }
 
     # create random transform generator for augmenting training data
-    print('Data augmentation: {}'.format('enabled' if args.random_transform else 'disabled'))
+    print('Color augmentation: {}'.format('enabled' if args.random_transform else 'disabled'))
     if args.random_transform:
         # reduce intensity of color augmentation when color branch is training
         color_factor = 0.9 if not args.freeze_color else None
