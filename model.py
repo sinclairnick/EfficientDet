@@ -467,10 +467,6 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     final_layer = layers.Activation('relu')(final_layer)
     final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
 
-    final_layer = layers.Dense(final_layer.shape[1] // 2)(final_layer)
-    final_layer = layers.Activation('relu')(final_layer)
-    final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
-
     if hinge_loss: # use 
         colors = layers.Dense(num_colors, name="colors")(final_layer)
     else: # use softmax activation
