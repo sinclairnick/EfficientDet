@@ -370,13 +370,13 @@ def main(args=None):
 
     if args.freeze_color:
         color_loss = dummy_loss
-        model.get_layer('color-class').trainable = False
+        model.get_layer('color-classifier').trainable = False
     else:
         color_loss = keras.losses.CategoricalHinge() if args.hinge_loss else keras.losses.CategoricalCrossentropy()
 
     if args.freeze_body:
         regression_loss, classification_loss = dummy_loss, dummy_loss
-        model.get_layer('car-det').trainable = False
+        model.get_layer('car-detection').trainable = False
     else:
         regression_loss = smooth_l1_quad() if args.detect_quadrangle else smooth_l1()
         classification_loss = focal()
