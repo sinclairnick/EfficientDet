@@ -455,8 +455,8 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     classification = layers.Concatenate(axis=1, name='classification')(classification)
     regression = [box_net([feature, i]) for i, feature in enumerate(fpn_features)]
     regression = layers.Concatenate(axis=1, name='regression')(regression)
-
-    car_detection = models.Model(features, outputs=[classification, regression], name="car-det")
+    
+    car_detection = models.Model(features, outputs=[classification, regression], name="car-detection")
 
     # ------------------------------ COLOR DETECTION ----------------------------- #
     spp = SpatialPyramidPooling()
@@ -466,21 +466,22 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     final_layer = layers.Dense(final_layer.shape[1] // 2)(final_layer)
     final_layer = layers.Activation('relu')(final_layer)
     final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
+    
+    colors = layers.Dense(num_colors)(final_layer)
 
-    final_layer = layers.Dense(final_layer.shape[1] // 2)(final_layer)
-    final_layer = layers.Activation('relu')(final_layer)
-    final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
+    if not hinge_loss:
+        colors = layers.Dense(num_colors)(final_layer)
+        colors = layers.Activation('softmax')(colors)
 
-    if hinge_loss: # use 
-        colors = layers.Dense(num_colors, name="colors")(final_layer)
-    else: # use softmax activation
-        colors = layers.Dense(num_colors, name="colors", activation="softmax")(final_layer)
-
-    color_classifier = models.Model(features, outputs=colors, name="color-class")
+    color_classifier = models.Model(features, outputs=colors, name="color-classifier")
 
     bb_out = backbone(image_input)
     classification, regression = car_detection(bb_out)
     color_preds = color_classifier(bb_out)
+
+    classification = layers.Lambda(lambda x: x, name="classification")(classification)
+    regression = layers.Lambda(lambda x: x, name="regression")(regression)
+    color_preds = layers.Lambda(lambda x: x, name="colors")(color_preds)
 
     # car_out = [classification, regression]
     model = models.Model(inputs=[image_input], outputs=[classification, regression, color_preds], name="efficientlpr")
