@@ -383,9 +383,13 @@ def main(args=None):
 
     # compile model
     model.compile(optimizer=Adam(lr=args.lr),
-        loss=[classification_loss, regression_loss, color_loss],
+        loss={
+            'classification': classification_loss,
+            'regression': regression_loss,
+            'colors': color_loss
+        },
         metrics={
-            'color-class': 'categorical_accuracy'
+            'colors': ['categorical_accuracy', keras.metrics.Precision(), keras.metrics.Recall()]
         }
     )
 
