@@ -382,7 +382,7 @@ def main(args=None):
         classification_loss = focal()
 
     print('Frozen?')
-    print('Body detection: ', not model.get_layer('car-det').trainable)
+    print('Body detection: ', not model.get_layer('car-detection').trainable)
     print('Color classification: ', not model.get_layer('color-class').trainable)
 
 
