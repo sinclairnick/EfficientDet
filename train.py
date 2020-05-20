@@ -157,8 +157,8 @@ def create_generators(args):
         # reduce intensity of color augmentation when color branch is training
         color_factor = 0.9 if not args.freeze_color else None
 
-        misc_effect = MiscEffect(color_factor=color_factor)
-        visual_effect = VisualEffect()
+        misc_effect = MiscEffect()
+        visual_effect = VisualEffect(color_factor=color_factor)
 
     if args.dataset_type == 'pascal':
         from generators.pascal import PascalVocGenerator
