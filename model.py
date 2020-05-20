@@ -462,23 +462,21 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     spp = SpatialPyramidPooling()
     pyramids = [spp(feature) for feature in features]
     final_layer = layers.Concatenate(axis=1)(pyramids)
+
+    final_layer = layers.Dense(final_layer.shape[1] // 2)(final_layer)
+    final_layer = layers.Activation('relu')(final_layer)
     final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
 
-    final_layer = layers.Dense(final_layer.shape[1] // 2, kernel_initializer='he_uniform')(final_layer)
+    final_layer = layers.Dense(final_layer.shape[1] // 2)(final_layer)
     final_layer = layers.Activation('relu')(final_layer)
-
-    final_layer = layers.Dense(final_layer.shape[1], kernel_initializer='he_uniform')(final_layer)
-    final_layer = layers.Activation('relu')(final_layer)
-
+    final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
 
     if hinge_loss: # use 
-        colors = layers.Dense(num_colors)(final_layer)
-        colors = layers.Activation('tanh')
+        colors = layers.Dense(num_colors, name="colors")(final_layer)
     else: # use softmax activation
-        colors = layers.Dense(num_colors)(final_layer)
-        colors = layers.Activation('softmax')(colors)
+        colors = layers.Dense(num_colors, name="colors", activation="softmax")(final_layer)
 
-    color_classifier = models.Model(features, outputs=colors, name="color")
+    color_classifier = models.Model(features, outputs=colors, name="color-class")
 
     bb_out = backbone(image_input)
     classification, regression = car_detection(bb_out)
