@@ -432,7 +432,7 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     backbone_cls = backbones[phi]
 
     features = backbone_cls(input_tensor=image_input, freeze_bn=freeze_bn)
-    backbone = models.Model(image_input, features, name="backbone")
+    backbone = models.Model(inputs=[image_input], outputs=features, name="backbone")
 
     features = backbone(image_input)
 
@@ -456,7 +456,7 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     regression = [box_net([feature, i]) for i, feature in enumerate(fpn_features)]
     regression = layers.Concatenate(axis=1, name='regression')(regression)
     
-    car_detection = models.Model(features, outputs=[classification, regression], name="car-detection")
+    car_detection = models.Model(inputs=[features], outputs=[classification, regression], name="car-detection")
 
     # ------------------------------ COLOR DETECTION ----------------------------- #
     spp = SpatialPyramidPooling()
@@ -473,7 +473,7 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
         colors = layers.Dense(num_colors)(final_layer)
         colors = layers.Activation('softmax')(colors)
 
-    color_classifier = models.Model(features, outputs=colors, name="color-classifier")
+    color_classifier = models.Model(inputs=[features], outputs=colors, name="color-classifier")
 
     bb_out = backbone(image_input)
     classification, regression = car_detection(bb_out)
