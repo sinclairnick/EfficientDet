@@ -38,16 +38,16 @@ if __name__ == '__main__':
     colored_train, colored_val = split(colored_cars)
     assert abs(len(colored_val) * 9 - len(colored_train)) < 10
 
-    assert np.all(np.equal(nzvd_train.columns, nzvd_test.columns)), "Column names must match"
-    assert np.all(np.equal(nzvd_train.columns, stan.columns)), "Column names must match"
+    # assert np.all(np.equal(nzvd_train.columns, nzvd_test.columns)), "Column names must match"
+    # assert np.all(np.equal(nzvd_train.columns, stan.columns)), "Column names must match"
 
-    save_dataset(nzvd_train, 'nzvd', 'train', 'train')
-    save_dataset(nzvd_val, 'nzvd', 'train', 'val')
-    save_dataset(nzvd_test, 'nzvd', 'test', 'test')
-    save_dataset(stan_train, 'stanford-cars', 'train', 'train')
-    save_dataset(stan_val, 'stanford-cars', 'train', 'val')
-    save_dataset(colored_train, 'car-colors', 'train', 'train')
-    save_dataset(colored_val, 'car-colors', 'train', 'val')
+    # save_dataset(nzvd_train, 'nzvd', 'train', 'train')
+    # save_dataset(nzvd_val, 'nzvd', 'train', 'val')
+    # save_dataset(nzvd_test, 'nzvd', 'test', 'test')
+    # save_dataset(stan_train, 'stanford-cars', 'train', 'train')
+    # save_dataset(stan_val, 'stanford-cars', 'train', 'val')
+    # save_dataset(colored_train, 'car-colors', 'train', 'train')
+    # save_dataset(colored_val, 'car-colors', 'train', 'val')
 
     classes_out = pd.DataFrame(np.stack([all_bodies, list(range(len(all_bodies)))], axis=1))
     colors_out = pd.DataFrame(np.stack([all_colors, list(range(len(all_colors)))], axis=1))

@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 import os
 import shutil
-from common import input_dir, output_dir, TLHW, mappings, OUT_HEADER
+from common import input_dir, output_dir, TLHW, mappings, OUT_HEADER, XYXY
 from tqdm import tqdm
 from cv2 import cv2
 
@@ -71,13 +71,15 @@ def get_colored_cars(all_colors):
     fnames = np.expand_dims(fnames,1 )
     # set dummy bbox such that [x1,y1] < [x2,y2]
     dummy_bbox = np.expand_dims([20,20,100,100], 0)
-    dummy_bboxes = np.repeat(dummy_bbox, (len(fnames)), 0)
+    dummy_bboxes = np.repeat(dummy_bbox, (len(fnames)), 0).astype(np.int32)
     dummy_body = np.expand_dims(np.repeat('coupe', (len(fnames))),1)
     colors = np.expand_dims(list(map(lambda x: x[0].split('_')[0], fnames)), 1)
     print(set([x[0] for x in colors]))
     assert np.all([x[0] in all_colors for x in colors]), "All colors must be one of {}".format(all_colors)
-    data = pd.DataFrame(np.hstack([fnames, dummy_bboxes, dummy_body, colors]))
+    data = np.hstack([fnames, dummy_bboxes, dummy_body, colors])
+    data = pd.DataFrame(data)
     data.columns = OUT_HEADER
+    data[XYXY] = data[XYXY].apply(pd.to_numeric)
     return data
 
 
