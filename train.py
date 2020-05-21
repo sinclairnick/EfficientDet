@@ -346,6 +346,7 @@ def main(args=None):
     # load pretrained weights    
     if args.snapshot:
         if args.snapshot == 'imagenet':
+            print('Loading imagenet weights')
             model_name = 'efficientnet-b{}'.format(args.phi)
             file_name = '{}_weights_tf_dim_ordering_tf_kernels_autoaugment_notop.h5'.format(model_name)
             file_hash = WEIGHTS_HASHES[model_name][1]
@@ -353,7 +354,7 @@ def main(args=None):
                                                 BASE_WEIGHTS_PATH + file_name,
                                                 cache_subdir='models',
                                                 file_hash=file_hash)
-            model.load_weights(weights_path, by_name=True)
+            model.get_layer('backbone').load_weights(weights_path, by_name=True)
         else:
             print('Loading model, this may take a second...')
             model.load_weights(args.snapshot, by_name=True)
