@@ -298,7 +298,7 @@ def parse_args(args):
     parser.add_argument('--no-snapshots', help='Disable saving snapshots.', dest='snapshots', action='store_false')
     parser.add_argument('--no-evaluation', help='Disable per epoch evaluation.', dest='evaluation',
                         action='store_false')
-    parser.add_argument('--random_transform', help='Randomly transform image and annotations.', action='store_true')
+    parser.add_argument('--random-transform', help='Randomly transform image and annotations.', action='store_true')
     parser.add_argument('--compute-val-loss', help='Compute validation loss during training', dest='compute_val_loss',
                         action='store_true')
 

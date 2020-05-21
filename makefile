@@ -33,7 +33,7 @@ pretrain-body:
     --weighted-bifpn \
     --compute-val-loss \
     --batch-size 32 \
-	--random_transform \
+	--random-transform \
     --snapshot ${SNAPSHOT} \
     --phi ${PHI} \
     --lr ${LR} \
@@ -52,7 +52,7 @@ pretrain-color:
     --weighted-bifpn \
     --compute-val-loss \
     --batch-size 32 \
-	--random_transform \
+	--random-transform \
     --snapshot ${SNAPSHOT} \
     --phi ${PHI} \
     --lr ${LR} \
