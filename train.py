@@ -354,50 +354,43 @@ def main(args=None):
                                                 BASE_WEIGHTS_PATH + file_name,
                                                 cache_subdir='models',
                                                 file_hash=file_hash)
-            model.get_layer('backbone').load_weights(weights_path, by_name=True)
+            model.load_weights(weights_path, by_name=True)
         else:
             print('Loading model, this may take a second...')
             model.load_weights(args.snapshot, by_name=True)
 
+    backbone_layers = [model.layers[i] for i in range(1, [227, 329, 329, 374, 464, 566, 656][args.phi])]
+    color_layers = [layer for layer in model.layers if layer.name.startswith('color')]
+    body_layers = [layer for layer in model.layers if layer not in backbone_layers and layer not in color_layers]
+
+    # freeze backbone layers
+    if args.freeze_backbone:
+        # 227, 329, 329, 374, 464, 566, 656
+        for layer in backbone_layers:
+            layer.trainable = False
+    
+    if args.freeze_body:
+        for layer in body_layers:
+            layer.trainable = False
+
+    if args.freeze_color:
+        for layer in color_layers:
+            layer.trainable = False
 
     if args.gpu and len(args.gpu.split(',')) > 1:
         model = keras.utils.multi_gpu_model(model, gpus=list(map(int, args.gpu.split(','))))
 
-    dummy_loss = lambda y_pred, y_true: float(0)
-    
-    # freeze backbone layers
-    if args.freeze_backbone:
-        model.get_layer('backbone').trainable = False
-
     if args.freeze_color:
-        color_loss = dummy_loss
-        model.get_layer('color-classifier').trainable = False
+        color_loss = lambda y_pred, y_true: float(0)
     else:
         color_loss = keras.losses.CategoricalHinge() if args.hinge_loss else keras.losses.CategoricalCrossentropy()
 
-    if args.freeze_body:
-        regression_loss, classification_loss = dummy_loss, dummy_loss
-        model.get_layer('car-detection').trainable = False
-    else:
-        regression_loss = smooth_l1_quad() if args.detect_quadrangle else smooth_l1()
-        classification_loss = focal()
-
-    print('Frozen?')
-    print('Body detection: ', not model.get_layer('car-detection').trainable)
-    print('Color classification: ', not model.get_layer('color-classifier').trainable)
-
-
     # compile model
-    model.compile(optimizer=Adam(lr=args.lr),
-        loss={
-            'classification': classification_loss,
-            'regression': regression_loss,
-            'colors': color_loss
-        },
-        metrics={
-            'colors': ['categorical_accuracy', keras.metrics.Precision(), keras.metrics.Recall()]
-        }
-    )
+    model.compile(optimizer=Adam(lr=args.lr), loss={
+        'regression': smooth_l1_quad() if args.detect_quadrangle else smooth_l1(),
+        'classification': focal(),
+        'colors': color_loss, # NOTE: ADDED
+    }, )
 
     # create the callbacks
     callbacks = create_callbacks(
@@ -411,6 +404,8 @@ def main(args=None):
         validation_generator = None
     elif args.compute_val_loss and validation_generator is None:
         raise ValueError('When you have no validation data, you should not specify --compute-val-loss.')
+
+    
 
     # NOTE: fit_generator is deprecated in TF2. Changed to fit().
     # start training
