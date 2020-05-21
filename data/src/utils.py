@@ -85,7 +85,7 @@ def copy_images(data, in_dir, out_dir):
     data.reset_index(drop=True, inplace=True)
     for idx, row in enumerate(tqdm(data.values)):
         fname = row[0]
-        x1, y1, x2, y2 = [int(x) for x in row[1:5]]
+        x1, y1, x2, y2 = row[1:5]
         Xs = np.array([x1,x2])
         Ys = np.array([y1,y2])
         
