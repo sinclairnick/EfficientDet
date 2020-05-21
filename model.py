@@ -437,7 +437,7 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     features = backbone(image_input)
 
     # ----------------------------- OBJECT DETECTION ----------------------------- #
-    features = [layers.Input(feature.shape) for feature in features]
+    features = [layers.Input(batch_shape=feature.shape) for feature in features]
     if weighted_bifpn:
         fpn_features = features
         for i in range(d_bifpn):
