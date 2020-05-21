@@ -152,8 +152,13 @@ def create_generators(args):
     }
 
     # create random transform generator for augmenting training data
-    misc_effect = MiscEffect() if args.random_transform else None
-    visual_effect = VisualEffect() if args.random_transform else None
+    print('Color augmentation: {}'.format('enabled' if args.random_transform else 'disabled'))
+    if args.random_transform:
+        # reduce intensity of color augmentation when color branch is training
+        color_factor = 0.9 if not args.freeze_color else None
+
+        misc_effect = MiscEffect()
+        visual_effect = VisualEffect(color_factor=color_factor)
 
     if args.dataset_type == 'pascal':
         from generators.pascal import PascalVocGenerator
@@ -341,6 +346,7 @@ def main(args=None):
     # load pretrained weights    
     if args.snapshot:
         if args.snapshot == 'imagenet':
+            print('Loading imagenet weights')
             model_name = 'efficientnet-b{}'.format(args.phi)
             file_name = '{}_weights_tf_dim_ordering_tf_kernels_autoaugment_notop.h5'.format(model_name)
             file_hash = WEIGHTS_HASHES[model_name][1]
@@ -348,7 +354,7 @@ def main(args=None):
                                                 BASE_WEIGHTS_PATH + file_name,
                                                 cache_subdir='models',
                                                 file_hash=file_hash)
-            model.load_weights(weights_path, by_name=True)
+            model.get_layer('backbone').load_weights(weights_path, by_name=True)
         else:
             print('Loading model, this may take a second...')
             model.load_weights(args.snapshot, by_name=True)
@@ -365,27 +371,31 @@ def main(args=None):
 
     if args.freeze_color:
         color_loss = dummy_loss
-        model.get_layer('color-class').trainable = False
+        model.get_layer('color-classifier').trainable = False
     else:
         color_loss = keras.losses.CategoricalHinge() if args.hinge_loss else keras.losses.CategoricalCrossentropy()
 
     if args.freeze_body:
         regression_loss, classification_loss = dummy_loss, dummy_loss
-        model.get_layer('car-det').trainable = False
+        model.get_layer('car-detection').trainable = False
     else:
         regression_loss = smooth_l1_quad() if args.detect_quadrangle else smooth_l1()
         classification_loss = focal()
 
     print('Frozen?')
-    print('Body detection: ', not model.get_layer('car-det').trainable)
-    print('Color classification: ', not model.get_layer('color-class').trainable)
+    print('Body detection: ', not model.get_layer('car-detection').trainable)
+    print('Color classification: ', not model.get_layer('color-classifier').trainable)
 
 
     # compile model
     model.compile(optimizer=Adam(lr=args.lr),
-        loss=[classification_loss, regression_loss, color_loss],
+        loss={
+            'classification': classification_loss,
+            'regression': regression_loss,
+            'colors': color_loss
+        },
         metrics={
-            'color-class': 'categorical_accuracy'
+            'colors': ['categorical_accuracy', keras.metrics.Precision(), keras.metrics.Recall()]
         }
     )
 

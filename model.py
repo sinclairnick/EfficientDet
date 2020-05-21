@@ -432,12 +432,12 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     backbone_cls = backbones[phi]
 
     features = backbone_cls(input_tensor=image_input, freeze_bn=freeze_bn)
-    backbone = models.Model(image_input, features, name="backbone")
+    backbone = models.Model(inputs=[image_input], outputs=features, name="backbone")
 
     features = backbone(image_input)
 
     # ----------------------------- OBJECT DETECTION ----------------------------- #
-    features = [layers.Input(tf.squeeze(feature, axis=0).shape) for feature in features]
+    features = [layers.Input(batch_shape=feature.shape) for feature in features]
     if weighted_bifpn:
         fpn_features = features
         for i in range(d_bifpn):
@@ -455,8 +455,8 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     classification = layers.Concatenate(axis=1, name='classification')(classification)
     regression = [box_net([feature, i]) for i, feature in enumerate(fpn_features)]
     regression = layers.Concatenate(axis=1, name='regression')(regression)
-
-    car_detection = models.Model(features, outputs=[classification, regression], name="car-det")
+    
+    car_detection = models.Model(inputs=[features], outputs=[classification, regression], name="car-detection")
 
     # ------------------------------ COLOR DETECTION ----------------------------- #
     spp = SpatialPyramidPooling()
@@ -466,17 +466,23 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     final_layer = layers.Dense(final_layer.shape[1] // 2)(final_layer)
     final_layer = layers.Activation('relu')(final_layer)
     final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
+    
+    colors = layers.Dense(num_colors)(final_layer)
 
-    if hinge_loss: # use 
-        colors = layers.Dense(num_colors, name="colors")(final_layer)
-    else: # use softmax activation
-        colors = layers.Dense(num_colors, name="colors", activation="softmax")(final_layer)
 
-    color_classifier = models.Model(features, outputs=colors, name="color-class")
+    if not hinge_loss:
+        colors = layers.Dense(num_colors)(final_layer)
+        colors = layers.Activation('softmax')(colors)
+
+    color_classifier = models.Model(inputs=[features], outputs=colors, name="color-classifier")
 
     bb_out = backbone(image_input)
     classification, regression = car_detection(bb_out)
     color_preds = color_classifier(bb_out)
+
+    classification = layers.Lambda(lambda x: x, name="classification")(classification)
+    regression = layers.Lambda(lambda x: x, name="regression")(regression)
+    color_preds = layers.Lambda(lambda x: x, name="colors")(color_preds)
 
     # car_out = [classification, regression]
     model = models.Model(inputs=[image_input], outputs=[classification, regression, color_preds], name="efficientlpr")
