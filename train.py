@@ -359,37 +359,39 @@ def main(args=None):
             print('Loading model, this may take a second...')
             model.load_weights(args.snapshot, by_name=True)
 
-    backbone_layers = [model.layers[i] for i in range(1, [227, 329, 329, 374, 464, 566, 656][args.phi])]
-    color_layers = [layer for layer in model.layers if layer.name.startswith('color')]
-    body_layers = [layer for layer in model.layers if layer not in backbone_layers and layer not in color_layers]
+    # backbone_layers = [model.layers[i] for i in range(1, [227, 329, 329, 374, 464, 566, 656][args.phi])]
+    # color_layers = [layer for layer in model.layers if layer.name.startswith('color')]
+    # body_layers = [layer for layer in model.layers if layer not in backbone_layers and layer not in color_layers]
+
+    dummy_loss = lambda y_pred, y_true: float(0)
+    color_loss = keras.losses.CategoricalHinge() if args.hinge_loss else keras.losses.CategoricalCrossentropy()
+    regression_loss = smooth_l1_quad() if args.detect_quadrangle else smooth_l1()
+    classification_loss = focal()
 
     # freeze backbone layers
     if args.freeze_backbone:
         # 227, 329, 329, 374, 464, 566, 656
-        for layer in backbone_layers:
+        for layer in model.get_layer('backbone').layers:
             layer.trainable = False
     
+    # freeze layers and set loss to zero
     if args.freeze_body:
-        for layer in body_layers:
+        classification_loss, regression_loss = dummy_loss, dummy_loss
+        for layer in model.get_layer('car_detector').layers:
             layer.trainable = False
 
+    # freeze layers and set loss to zero
     if args.freeze_color:
-        for layer in color_layers:
+        color_loss = dummy_loss
+        for layer in model.get_layer('color_classifier').layers:
             layer.trainable = False
-
-    if args.gpu and len(args.gpu.split(',')) > 1:
-        model = keras.utils.multi_gpu_model(model, gpus=list(map(int, args.gpu.split(','))))
-
-    if args.freeze_color:
-        color_loss = lambda y_pred, y_true: float(0)
-    else:
-        color_loss = keras.losses.CategoricalHinge() if args.hinge_loss else keras.losses.CategoricalCrossentropy()
+        
 
     # compile model
     model.compile(optimizer=Adam(lr=args.lr), loss={
-        'regression': smooth_l1_quad() if args.detect_quadrangle else smooth_l1(),
-        'classification': focal(),
-        'colors': color_loss, # NOTE: ADDED
+        'regression': regression_loss,
+        'classification': classification_loss,
+        'colors': color_loss,
     }, )
 
     # create the callbacks
