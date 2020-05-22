@@ -363,6 +363,11 @@ def main(args=None):
     color_layers = [layer for layer in model.layers if layer.name.startswith('color')]
     body_layers = [layer for layer in model.layers if layer not in backbone_layers and layer not in color_layers]
 
+    dummy_loss = lambda y_pred, y_true: float(0)
+    classification_loss = focal()
+    regression_loss = smooth_l1_quad() if args.detect_quadrangle else smooth_l1(),
+    color_loss = keras.losses.CategoricalHinge() if args.hinge_loss else keras.losses.CategoricalCrossentropy()
+
     # freeze backbone layers
     if args.freeze_backbone:
         # 227, 329, 329, 374, 464, 566, 656
@@ -370,25 +375,24 @@ def main(args=None):
             layer.trainable = False
     
     if args.freeze_body:
+        classification_loss, regression_loss = dummy_loss
         for layer in body_layers:
             layer.trainable = False
+        
 
     if args.freeze_color:
+        color_loss = dummy_loss
         for layer in color_layers:
             layer.trainable = False
 
     if args.gpu and len(args.gpu.split(',')) > 1:
         model = keras.utils.multi_gpu_model(model, gpus=list(map(int, args.gpu.split(','))))
 
-    if args.freeze_color:
-        color_loss = lambda y_pred, y_true: float(0)
-    else:
-        color_loss = keras.losses.CategoricalHinge() if args.hinge_loss else keras.losses.CategoricalCrossentropy()
 
     # compile model
     model.compile(optimizer=Adam(lr=args.lr), loss={
-        'regression': smooth_l1_quad() if args.detect_quadrangle else smooth_l1(),
-        'classification': focal(),
+        'regression': regression_loss,
+        'classification': classification_loss,
         'colors': color_loss, # NOTE: ADDED
     }, )
 
