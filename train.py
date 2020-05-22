@@ -390,7 +390,11 @@ def main(args=None):
         'regression': smooth_l1_quad() if args.detect_quadrangle else smooth_l1(),
         'classification': focal(),
         'colors': color_loss, # NOTE: ADDED
-    }, )
+    },
+        metrics={
+            'colors': [keras.metrics.Precision(), keras.metrics.Recall(), 'categorical_accuracy']
+        }
+     )
 
     # create the callbacks
     callbacks = create_callbacks(
