@@ -452,22 +452,22 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     regression = layers.Concatenate(axis=1, name='regression')(regression)
 
     # ------------------------------ COLOR DETECTION ----------------------------- #
+    feature_inputs = [layers.Input(batch_shape=feature.shape) for feature in features]
     spp = SpatialPyramidPooling()
-    pyramids = [spp(feature) for feature in features]
+    pyramids = [spp(feature) for feature in feature_inputs]
     final_layer = layers.Concatenate(axis=1)(pyramids)
-
-    final_layer = layers.Dense(final_layer.shape[1] // 2, name='color/dense1')(final_layer)
-    final_layer = layers.Activation('relu', name="color/relu1")(final_layer)
-    final_layer = layers.Dropout(rate=dropout_rate, name="color/dropout1")(final_layer)
-
-    final_layer = layers.Dense(final_layer.shape[1] // 2, name='color/dense2')(final_layer)
-    final_layer = layers.Activation('relu', name="color/relu2")(final_layer)
-    final_layer = layers.Dropout(rate=dropout_rate, name="color/dropout2")(final_layer)
+    final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
+    final_layer = layers.Dense(final_layer.shape[1] // 2)(final_layer)
+    final_layer = layers.Dense(final_layer.shape[1])(final_layer)
 
     colors = layers.Dense(num_colors, name="colors", activation="softmax")(final_layer)
 
+    color_classifier = models.Model(features, outputs=colors, name="color-classifier")
+
+    color_preds = color_classifier(feature_inputs)
+
     # car_out = [classification, regression]
-    model = models.Model(inputs=[image_input], outputs=[classification, regression, colors], name="efficientlpr")
+    model = models.Model(inputs=[image_input], outputs=[classification, regression, color_preds], name="efficientlpr")
 
     # model = models.Model(inputs=[image_input], outputs=[classification, regression, colors], name='efficientdet')
 
@@ -491,7 +491,7 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
         )([boxes, classification])
 
     
-    prediction_model = models.Model(inputs=[image_input], outputs=[detections, colors])
+    prediction_model = models.Model(inputs=[image_input], outputs=[detections, color_preds])
 
     return model, prediction_model
 
