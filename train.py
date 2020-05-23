@@ -394,9 +394,11 @@ def main(args=None):
         'colors': colors_loss,
     },
         metrics={
-            'colors': [keras.metrics.Precision(), keras.metrics.Recall(), 'categorical_accuracy']
+            'colors':  'categorical_accuracy'
         }
      )
+    for layer in model.layers:
+        print(layer.name, layer.trainable)
 
     # create the callbacks
     callbacks = create_callbacks(
