@@ -458,9 +458,9 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     final_layer = layers.Dropout(rate=dropout_rate, name="color/dropout")(final_layer)
 
     final_layer = layers.Dense(final_layer.shape[1] // 2, name='color/dense1')(final_layer)
-    final_layer = layers.Activation('relu', name="color/relu")(final_layer)
-    final_layer = layers.Dense(final_layer.shape[1], name='color/dense1')(final_layer)
-    final_layer = layers.Activation('relu', name="color/relu")(final_layer)
+    final_layer = layers.Activation('relu', name="color/relu1")(final_layer)
+    final_layer = layers.Dense(final_layer.shape[1], name='color/dense2')(final_layer)
+    final_layer = layers.Activation('relu', name="color/relu2")(final_layer)
 
     colors = layers.Dense(num_colors, name="colors", activation="softmax")(final_layer)
 
