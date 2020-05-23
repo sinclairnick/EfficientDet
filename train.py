@@ -360,7 +360,7 @@ def main(args=None):
             model.load_weights(args.snapshot, by_name=True)
 
     backbone_layers = [model.layers[i] for i in range(1, [227, 329, 329, 374, 464, 566, 656][args.phi])]
-    color_layers = model.get_layer('color-classifier').layers
+    color_layers = [layer for layer  in model.layers if layer.name.startswith('color')]
     body_layers = [layer for layer in model.layers if layer not in backbone_layers and layer not in color_layers]
 
     dummy_loss = lambda x, y: float(0)
@@ -387,14 +387,17 @@ def main(args=None):
     if args.gpu and len(args.gpu.split(',')) > 1:
         model = keras.utils.multi_gpu_model(model, gpus=list(map(int, args.gpu.split(','))))
 
+    for layer in model.layers:
+        print(layer.name, layer.trainable)
+
     # compile model
     model.compile(optimizer=Adam(lr=args.lr), loss={
         'regression': regression_loss,
         'classification': classification_loss,
-        'color-classifier': colors_loss,
+        'colors': colors_loss,
     },
         metrics={
-            'color-classifier':  'categorical_accuracy'
+            'colors':  'categorical_accuracy'
         }
      )
 

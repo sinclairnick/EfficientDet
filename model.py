@@ -452,9 +452,8 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     regression = layers.Concatenate(axis=1, name='regression')(regression)
 
     # ------------------------------ COLOR DETECTION ----------------------------- #
-    feature_inputs = [layers.Input(batch_shape=feature.shape) for feature in features]
     spp = SpatialPyramidPooling()
-    pyramids = [spp(feature) for feature in feature_inputs]
+    pyramids = [spp(feature) for feature in features]
     final_layer = layers.Concatenate(axis=1)(pyramids)
     final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
     final_layer = layers.Dense(final_layer.shape[1] // 2)(final_layer)
@@ -462,12 +461,8 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
 
     colors = layers.Dense(num_colors, name="colors", activation="softmax")(final_layer)
 
-    color_classifier = models.Model(feature_inputs, outputs=colors, name="color-classifier")
-
-    color_preds = color_classifier(features)
-
     # car_out = [classification, regression]
-    model = models.Model(inputs=[image_input], outputs=[classification, regression, color_preds], name="efficientlpr")
+    model = models.Model(inputs=[image_input], outputs=[classification, regression, colors], name="efficientlpr")
 
     # model = models.Model(inputs=[image_input], outputs=[classification, regression, colors], name='efficientdet')
 
