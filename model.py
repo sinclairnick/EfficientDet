@@ -459,14 +459,13 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     final_layer = layers.Concatenate(axis=1)(pyramids)
 
     final_layer = layers.Dense(final_layer.shape[1] // 2, name="colors/dense1")(final_layer)
-    final_layer = layers.Activation('relu')(final_layer)
     final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
     
     final_layer = layers.Dense(final_layer.shape[1] // 2, name="colors/dense2")(final_layer)
-    final_layer = layers.Activation('relu')(final_layer)
     final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
 
-    colors = layers.Dense(num_colors, name="colors/out", activation="softmax")(final_layer)
+    colors = layers.Dense(num_colors, name="colors/out")(final_layer)
+    colors = layers.Activation('softmax')(colors)
 
     car_detector = models.Model(inputs=feature_inputs, outputs=[classification, regression], name="car_detector")
     color_classifier = models.Model(inputs=feature_inputs, outputs=colors, name="color_classifier")
@@ -479,9 +478,10 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     regression = layers.Lambda(lambda x: x, name="regression")(regression)
     colors_out = layers.Lambda(lambda x: x, name="colors")(colors_out)
 
-
     # car_out = [classification, regression]
     model = models.Model(inputs=[image_input], outputs=[classification, regression, colors_out], name="efficientlpr")
+
+    # tf.keras.utils.plot_model(model, to_file="./model.png", expand_nested=True, show_shapes=True, dpi=40)
 
     # model = models.Model(inputs=[image_input], outputs=[classification, regression, colors], name='efficientdet')
 
