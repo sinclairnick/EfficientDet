@@ -433,12 +433,14 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
 
     features = backbone_cls(input_tensor=image_input, freeze_bn=freeze_bn)
 
+    feature_inputs = [layers.Input(tf.squeeze(feature, axis=0).shape) for feature in features]
+
     if weighted_bifpn:
-        fpn_features = features
+        fpn_features = feature_inputs
         for i in range(d_bifpn):
             fpn_features = build_wBiFPN(fpn_features, w_bifpn, i, freeze_bn=freeze_bn)
     else:
-        fpn_features = features
+        fpn_features = feature_inputs
         for i in range(d_bifpn):
             fpn_features = build_BiFPN(fpn_features, w_bifpn, i, freeze_bn=freeze_bn)
 
@@ -453,16 +455,32 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
 
     # ------------------------------ COLOR DETECTION ----------------------------- #
     spp = SpatialPyramidPooling()
-    pyramids = [spp(feature) for feature in features]
+    pyramids = [spp(feature) for feature in feature_inputs]
     final_layer = layers.Concatenate(axis=1)(pyramids)
-    final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
-    final_layer = layers.Dense(final_layer.shape[1] // 2, name="colors/dense1")(final_layer)
-    final_layer = layers.Dense(final_layer.shape[1], name="colors/dense2")(final_layer)
 
-    colors = layers.Dense(num_colors, name="colors", activation="softmax")(final_layer)
+    final_layer = layers.Dense(final_layer.shape[1] // 2, name="colors/dense1")(final_layer)
+    final_layer = layers.Activation('relu')(final_layer)
+    final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
+    
+    final_layer = layers.Dense(final_layer.shape[1] // 2, name="colors/dense1")(final_layer)
+    final_layer = layers.Activation('relu')(final_layer)
+    final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
+
+    colors = layers.Dense(num_colors, name="colors/out", activation="softmax")(final_layer)
+
+    car_detector = models.Model(inputs=feature_inputs, outputs=[classification, regression], name="car_detector")
+    color_classifier = models.Model(inputs=feature_inputs, outputs=colors, name="color_classifier")
+
+    class_out, reg_out = car_detector(features)
+    colors_out = color_classifier(features)
+
+    class_out = layers.Lambda(lambda x: x, name="classification")(class_out)
+    reg_out = layers.Lambda(lambda x: x, name="regression")(reg_out)
+    colors_out = layers.Lambda(lambda x: x, name="colors")(colors_out)
+
 
     # car_out = [classification, regression]
-    model = models.Model(inputs=[image_input], outputs=[classification, regression, colors], name="efficientlpr")
+    model = models.Model(inputs=[image_input], outputs=[class_out, reg_out, colors_out], name="efficientlpr")
 
     # model = models.Model(inputs=[image_input], outputs=[classification, regression, colors], name='efficientdet')
 
