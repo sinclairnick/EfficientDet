@@ -383,11 +383,6 @@ def main(args=None):
     if args.gpu and len(args.gpu.split(',')) > 1:
         model = keras.utils.multi_gpu_model(model, gpus=list(map(int, args.gpu.split(','))))
 
-    for layer in model.get_layer('car_detector').layers:
-        print(layer.name, layer.trainable)
-    for layer in model.get_layer('color_classifier').layers:
-        print(layer.name, layer.trainable)
-
     # compile model
     model.compile(optimizer=Adam(lr=args.lr), loss={
         'regression': regression_loss,
