@@ -486,7 +486,7 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
         )([boxes, classification])
 
     
-    prediction_model = models.Model(inputs=[image_input], outputs=[detections, color_preds])
+    prediction_model = models.Model(inputs=[image_input], outputs=[detections, colors])
 
     return model, prediction_model
 
