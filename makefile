@@ -34,6 +34,8 @@ pretrain-body:
     --compute-val-loss \
     --batch-size 32 \
 	--random-transform \
+	--multiprocessing \
+	--workers 4 \
     --snapshot ${SNAPSHOT} \
     --phi ${PHI} \
     --lr ${LR} \
@@ -53,6 +55,8 @@ pretrain-color:
     --compute-val-loss \
     --batch-size 32 \
 	--random-transform \
+	--multiprocessing \
+	--workers 4 \
     --snapshot ${SNAPSHOT} \
     --phi ${PHI} \
     --lr ${LR} \
