@@ -394,11 +394,9 @@ def main(args=None):
         'color-classifier': colors_loss,
     },
         metrics={
-            'colors':  'categorical_accuracy'
+            'color-classifier':  'categorical_accuracy'
         }
      )
-    for layer in model.layers:
-        print(layer.name, layer.trainable)
 
     # create the callbacks
     callbacks = create_callbacks(

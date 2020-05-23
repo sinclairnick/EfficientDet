@@ -462,9 +462,9 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
 
     colors = layers.Dense(num_colors, name="colors", activation="softmax")(final_layer)
 
-    color_classifier = models.Model(features, outputs=colors, name="color-classifier")
+    color_classifier = models.Model(feature_inputs, outputs=colors, name="color-classifier")
 
-    color_preds = color_classifier(feature_inputs)
+    color_preds = color_classifier(features)
 
     # car_out = [classification, regression]
     model = models.Model(inputs=[image_input], outputs=[classification, regression, color_preds], name="efficientlpr")
