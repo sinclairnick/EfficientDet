@@ -471,16 +471,17 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     car_detector = models.Model(inputs=feature_inputs, outputs=[classification, regression], name="car_detector")
     color_classifier = models.Model(inputs=feature_inputs, outputs=colors, name="color_classifier")
 
-    class_out, reg_out = car_detector(features)
+    classification, regression = car_detector(features)
     colors_out = color_classifier(features)
 
-    class_out = layers.Lambda(lambda x: x, name="classification")(class_out)
-    reg_out = layers.Lambda(lambda x: x, name="regression")(reg_out)
+
+    classification = layers.Lambda(lambda x: x, name="classification")(classification)
+    regression = layers.Lambda(lambda x: x, name="regression")(regression)
     colors_out = layers.Lambda(lambda x: x, name="colors")(colors_out)
 
 
     # car_out = [classification, regression]
-    model = models.Model(inputs=[image_input], outputs=[class_out, reg_out, colors_out], name="efficientlpr")
+    model = models.Model(inputs=[image_input], outputs=[classification, regression, colors_out], name="efficientlpr")
 
     # model = models.Model(inputs=[image_input], outputs=[classification, regression, colors], name='efficientdet')
 
@@ -504,7 +505,7 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
         )([boxes, classification])
 
     
-    prediction_model = models.Model(inputs=[image_input], outputs=[detections, colors])
+    prediction_model = models.Model(inputs=[image_input], outputs=[detections, colors_out])
 
     return model, prediction_model
 

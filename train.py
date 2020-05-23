@@ -360,8 +360,6 @@ def main(args=None):
             model.load_weights(args.snapshot, by_name=True)
 
     backbone_layers = [model.layers[i] for i in range(1, [227, 329, 329, 374, 464, 566, 656][args.phi])]
-    color_layers = [layer for layer  in model.layers if layer.name.startswith('color')]
-    body_layers = [layer for layer in model.layers if layer not in backbone_layers and layer not in color_layers]
 
     dummy_loss = lambda x, y: float(0)
     classification_loss = focal()
@@ -376,18 +374,18 @@ def main(args=None):
     
     if args.freeze_body:
         classification_loss, regression_loss = dummy_loss, dummy_loss
-        for layer in body_layers:
-            layer.trainable = False
+        model.get_layer('car_detector').trainable = False
 
     if args.freeze_color:
         colors_loss = dummy_loss
-        for layer in color_layers:
-            layer.trainable = False
+        model.get_layer('color_classifier').trainable = False
 
     if args.gpu and len(args.gpu.split(',')) > 1:
         model = keras.utils.multi_gpu_model(model, gpus=list(map(int, args.gpu.split(','))))
 
-    for layer in model.layers:
+    for layer in model.get_layer('car_detector').layers:
+        print(layer.name, layer.trainable)
+    for layer in model.get_layer('color_classifier').layers:
         print(layer.name, layer.trainable)
 
     # compile model
