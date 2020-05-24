@@ -459,7 +459,6 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     final_layer = layers.Concatenate(axis=1)(pyramids)
     final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
     final_layer = layers.Dense(final_layer.shape[1] // 2, name="colors/dense1")(final_layer)
-    final_layer = layers.Dense(final_layer.shape[1], name="colors/dense2")(final_layer)
 
     colors = layers.Dense(num_colors, name="colors/out", activation="softmax")(final_layer)
 
