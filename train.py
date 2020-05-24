@@ -411,7 +411,7 @@ def main(args=None):
 
     # NOTE: fit_generator is deprecated in TF2. Changed to fit().
     # start training
-    return model.fit(
+    return model.fit_generator(
         train_generator,
         steps_per_epoch=args.steps,
         initial_epoch=0,
