@@ -5,7 +5,7 @@ Pillow==6.2.0
 progressbar2
 git+https://github.com/cocodataset/cocoapi.git#subdirectory=PythonAPI
 tqdm==4.28.1
-tensorflow>=2.1
+tensorflow
 tensorboard==2.1
 cython
 wandb
