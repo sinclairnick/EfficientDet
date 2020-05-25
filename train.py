@@ -19,6 +19,7 @@ from datetime import date
 import os
 import sys
 import tensorflow as tf
+import tensorflow_addons as tfa
 
 # import keras
 # import keras.preprocessing.image
@@ -364,7 +365,7 @@ def main(args=None):
     dummy_loss = lambda x, y: float(0)
     classification_loss = focal()
     regression_loss = smooth_l1_quad() if args.detect_quadrangle else smooth_l1()
-    colors_loss = keras.losses.CategoricalCrossentropy()
+    colors_loss = tfa.losses.SigmoidFocalCrossEntropy()
 
     # freeze backbone layers
     if args.freeze_backbone:

@@ -11,3 +11,4 @@ cython
 wandb
 gdown
 pandas
+tensorflow_addons
