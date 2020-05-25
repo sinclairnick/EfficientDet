@@ -88,9 +88,17 @@ inference:
 	python3 inference.py \
 	--phi ${PHI} \
 	--class_path data/processed/classes.csv \
-	--model_path model-best.h5 \
+	--model_path extracted-weights.h5 \
 	--image_dir ${IMAGE_DIR} \
 	--colors_path data/processed/colors.csv
+
+merge-weights:
+	python3 merge_weights.py \
+	--color_weights color_weights.h5 \
+	--body_weights body_weights.h5 \
+	--phi ${PHI} \
+	--class_path data/processed/classes.csv \
+	--colors_path data/processed/colors.csv \
 
 lpr-predictions:
 	# generate vehicle predictions
