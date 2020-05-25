@@ -83,10 +83,24 @@ train:
 	data/processed/classes.csv data/processed/colors.csv \
 	--val-annotations ${TRAIN_DIR}/val_annotations.csv
 
+IMAGE_DIR=data/processed/nzvd/test
 inference:
 	python3 inference.py \
 	--phi ${PHI} \
 	--class_path data/processed/classes.csv \
 	--model_path model-best.h5 \
-	--image_dir data/processed/nzvd/test \
+	--image_dir ${IMAGE_DIR} \
 	--colors_path data/processed/colors.csv
+
+lpr-predictions:
+	# generate vehicle predictions
+	# generate lp detections/readings
+	# merge vehicle/lp predictions
+
+train-similarity:
+	make lpr-predictions &&
+	# run similarity metrics on training data
+
+evaluate:
+	make lpr-predictions &&
+	# evaluate
