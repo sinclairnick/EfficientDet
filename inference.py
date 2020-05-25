@@ -70,34 +70,32 @@ def main():
         print(time.time() - start)
         boxes = postprocess_boxes(boxes=boxes.copy(), scale=scale, height=h, width=w)
 
-        # select indices which have a score above the threshold
-        indices = np.where(scores[:] > score_threshold)[0]
-
-        # select those detections
-        boxes = boxes[indices]
-        labels = labels[indices]
-
-        # draw_boxes(src_image, boxes, scores, labels, colors, classes)
-
-        # cv2.namedWindow('image', cv2.WINDOW_NORMAL)
-        # cv2.imshow('image', src_image)
-        # cv2.imwrite(f'tmp/{image_path.split("/")[-1]}', src_image)
-        # cv2.waitKey(0)
-
         # get best bbox and all class predictions for csv
         i_best = np.argmax(scores)
         best_bbox = boxes[i_best]
         best_label = labels[i_best]
         best_color = color_classes[np.argmax(color_preds)]
+        
+        # # select indices which have a score above the threshold
+        # indices = np.where(scores[:] > score_threshold)[0]
+
+        # # select those detections
+        # boxes = boxes[indices]
+        # labels = labels[indices]
+
+        # draw_boxes(src_image, boxes, scores, labels, colors, classes)
+        draw_boxes(src_image, [best_bbox], [scores[i_best]], [best_label], colors, classes)
+
+        # cv2.namedWindow('image', cv2.WINDOW_NORMAL)
+        # cv2.imshow('image', src_image)
+        cv2.imwrite(f'tmp/{image_path.split("/")[-1]}', src_image)
+        # cv2.waitKey(0)
+
         rows.append([image_path, *[int(x) for x in best_bbox], classes[best_label], best_color])
 
     with open('./predictions.csv', 'w+') as f:
         writer = csv.writer(f)
         writer.writerows(rows)
-
-
-
-
 
 if __name__ == '__main__':
     main()
