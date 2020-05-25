@@ -85,6 +85,19 @@ def main():
 
         # draw_boxes(src_image, boxes, scores, labels, colors, classes)
         draw_boxes(src_image, [best_bbox], [scores[i_best]], [best_label], colors, classes)
+        
+        font                   = cv2.FONT_HERSHEY_SIMPLEX
+        bottomLeftCornerOfText = (10,500)
+        fontScale              = 1
+        fontColor              = (255,255,255)
+        lineType               = 2
+
+        cv2.putText(src_image, best_color, 
+            bottomLeftCornerOfText, 
+            font, 
+            fontScale,
+            fontColor,
+            lineType)
 
         # cv2.namedWindow('image', cv2.WINDOW_NORMAL)
         # cv2.imshow('image', src_image)
