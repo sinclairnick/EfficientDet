@@ -186,6 +186,8 @@ def smooth_l1_quad(sigma=3.0):
 
     return _smooth_l1
 
+
+from tensorflow.keras import backend as K
 def categorical_focal_loss(gamma=2., alpha=.25):
     """
     Softmax version of focal loss.
