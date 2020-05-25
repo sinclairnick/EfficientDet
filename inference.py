@@ -14,6 +14,7 @@ from utils import preprocess_image, postprocess_boxes
 from utils.draw_boxes import draw_boxes
 
 import csv
+import json
 
 WEIGHTED_BIFPN = True
 IMAGE_SIZES = (512, 640, 768, 896, 1024, 1280, 1408)
@@ -48,7 +49,27 @@ def main():
                             num_classes=num_classes,
                             num_colors=num_colors,
                             score_threshold=score_threshold)
-    model.load_weights(model_path, by_name=True)
+        # freeze backbone layers
+
+    # # NOTE: weights frozen before saving must be frozen before loading cos of some keras bug
+    # # if args.freeze_backbone:
+    #     # 227, 329, 329, 374, 464, 566, 656
+    # for layer in [model.layers[i] for i in range(1, [227, 329, 329, 374, 464, 566, 656][args.phi])]:
+    #     layer.trainable = False
+    
+    # # if args.freeze_body:
+
+    # model.get_layer('car_detector').trainable = False
+
+    # # if args.freeze_color:
+    # #     model.get_layer('color_classifier').trainable = False
+        
+    # model.load_weights(model_path, by_name=True)
+    # for layer in model.layers:
+    #     layer.trainable = True
+    # model.save_weights('saved.h5')
+
+
     # model = keras.models.load_model(model_path)
 
     rows = [] # will be saved to csv
@@ -87,13 +108,13 @@ def main():
         draw_boxes(src_image, [best_bbox], [scores[i_best]], [best_label], colors, classes)
         
         font                   = cv2.FONT_HERSHEY_SIMPLEX
-        bottomLeftCornerOfText = (10,500)
+        topRightCorner         = (10,50)
         fontScale              = 1
         fontColor              = (255,255,255)
         lineType               = 2
 
         cv2.putText(src_image, best_color, 
-            bottomLeftCornerOfText, 
+            topRightCorner,  
             font, 
             fontScale,
             fontColor,
@@ -105,6 +126,7 @@ def main():
         # cv2.waitKey(0)
 
         rows.append([image_path, *[int(x) for x in best_bbox], classes[best_label], best_color])
+
 
     with open('./predictions.csv', 'w+') as f:
         writer = csv.writer(f)
