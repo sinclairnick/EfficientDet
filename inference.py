@@ -22,7 +22,7 @@ IMAGE_SIZES = (512, 640, 768, 896, 1024, 1280, 1408)
 def main():
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
-    parser = argparse.ArgumentParser(description="Evaluation")
+    parser = argparse.ArgumentParser(description="format_weights.py may need to be run prior to this script")
     parser.add_argument('--phi', help="Phi model number", default=0, type=int, choices=(0, 1, 2, 3, 4, 5, 6))
     parser.add_argument('--class_path', help="Csv path to detection classes", type=str, required=True)
     parser.add_argument('--colors_path', help="Csv path to vehicle colors", type=str, required=True)
@@ -49,28 +49,8 @@ def main():
                             num_classes=num_classes,
                             num_colors=num_colors,
                             score_threshold=score_threshold)
-        # freeze backbone layers
-
-    # # NOTE: weights frozen before saving must be frozen before loading cos of some keras bug
-    # # if args.freeze_backbone:
-    #     # 227, 329, 329, 374, 464, 566, 656
-    # for layer in [model.layers[i] for i in range(1, [227, 329, 329, 374, 464, 566, 656][args.phi])]:
-    #     layer.trainable = False
-    
-    # # if args.freeze_body:
-
-    # model.get_layer('car_detector').trainable = False
-
-    # # if args.freeze_color:
-    # #     model.get_layer('color_classifier').trainable = False
         
-    # model.load_weights(model_path, by_name=True)
-    # for layer in model.layers:
-    #     layer.trainable = True
-    # model.save_weights('saved.h5')
-
-
-    # model = keras.models.load_model(model_path)
+    model.load_weights(model_path, by_name=True)
 
     rows = [] # will be saved to csv
 
