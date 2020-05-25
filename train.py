@@ -19,7 +19,6 @@ from datetime import date
 import os
 import sys
 import tensorflow as tf
-import tensorflow_addons as tfa
 
 # import keras
 # import keras.preprocessing.image
@@ -33,7 +32,7 @@ from tensorflow.keras.optimizers import Adam, SGD
 from augmentor.color import VisualEffect
 from augmentor.misc import MiscEffect
 from model import efficientLPR
-from losses import smooth_l1, focal, smooth_l1_quad
+from losses import smooth_l1, focal, smooth_l1_quad, categorical_focal_loss
 from efficientnet import BASE_WEIGHTS_PATH, WEIGHTS_HASHES
 
 # NOTE: ADDED
@@ -365,7 +364,7 @@ def main(args=None):
     dummy_loss = lambda x, y: float(0)
     classification_loss = focal()
     regression_loss = smooth_l1_quad() if args.detect_quadrangle else smooth_l1()
-    colors_loss = tfa.losses.SigmoidFocalCrossEntropy()
+    colors_loss = categorical_focal_loss()
 
     # freeze backbone layers
     if args.freeze_backbone:
