@@ -76,22 +76,22 @@ def create_callbacks(training_model, prediction_model, validation_generator, arg
 
     tensorboard_callback = None
 
-    if args.tensorboard_dir:
-        if tf.version.VERSION > '2.0.0':
-            file_writer = tf.summary.create_file_writer(args.tensorboard_dir)
-            file_writer.set_as_default()
-        tensorboard_callback = keras.callbacks.TensorBoard(
-            log_dir=args.tensorboard_dir,
-            histogram_freq=0,
-            # batch_size=args.batch_size, # this argument is deprecated in tf2.0
-            write_graph=True,
-            write_grads=False,
-            write_images=False,
-            embeddings_freq=0,
-            embeddings_layer_names=None,
-            embeddings_metadata=None
-        )
-        callbacks.append(tensorboard_callback)
+    # if args.tensorboard_dir:
+    #     if tf.version.VERSION > '2.0.0':
+    #         file_writer = tf.summary.create_file_writer(args.tensorboard_dir)
+    #         file_writer.set_as_default()
+    #     tensorboard_callback = keras.callbacks.TensorBoard(
+    #         log_dir=args.tensorboard_dir,
+    #         histogram_freq=0,
+    #         # batch_size=args.batch_size, # this argument is deprecated in tf2.0
+    #         write_graph=True,
+    #         write_grads=False,
+    #         write_images=False,
+    #         embeddings_freq=0,
+    #         embeddings_layer_names=None,
+    #         embeddings_metadata=None
+    #     )
+    #     callbacks.append(tensorboard_callback)
 
     if args.evaluation and validation_generator:
         if args.dataset_type == 'coco':
@@ -293,8 +293,8 @@ def parse_args(args):
     parser.add_argument('--snapshot-path',
                         help='Path to store snapshots of models during training',
                         default='checkpoints/{}'.format(today))
-    parser.add_argument('--tensorboard-dir', help='Log directory for Tensorboard output',
-                        default='logs/{}'.format(today))
+    # parser.add_argument('--tensorboard-dir', help='Log directory for Tensorboard output',
+    #                     default='logs/{}'.format(today))
     parser.add_argument('--no-snapshots', help='Disable saving snapshots.', dest='snapshots', action='store_false')
     parser.add_argument('--no-evaluation', help='Disable per epoch evaluation.', dest='evaluation',
                         action='store_false')
