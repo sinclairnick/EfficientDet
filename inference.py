@@ -9,9 +9,11 @@ import pandas as pd
 import argparse
 from tensorflow import keras
 
-from model import efficientdet
+from model import efficientLPR
 from utils import preprocess_image, postprocess_boxes
 from utils.draw_boxes import draw_boxes
+
+import csv
 
 WEIGHTED_BIFPN = True
 IMAGE_SIZES = (512, 640, 768, 896, 1024, 1280, 1408)
@@ -35,18 +37,21 @@ def main():
 
     classes = [x[0] for x in pd.read_csv(args.class_path, header=None).values]
     color_classes = [x[0] for x in pd.read_csv(args.colors_path, header=None).values]
-    num_colors = len(color_classes) - 1 # temporarily -1 cos extra grey class in colors.csv
+    print(color_classes)
+    num_colors = len(color_classes)
     num_classes = len(classes)
     print('Num classes', num_classes)
     print('Num colors', num_colors)
     colors = [np.random.randint(0, 256, 3).tolist() for _ in range(num_classes)]
-    _, model = efficientdet(phi=phi,
+    _, model = efficientLPR(phi=phi,
                             weighted_bifpn=WEIGHTED_BIFPN,
                             num_classes=num_classes,
                             num_colors=num_colors,
                             score_threshold=score_threshold)
     model.load_weights(model_path, by_name=True)
     # model = keras.models.load_model(model_path)
+
+    rows = [] # will be saved to csv
 
     for image_path in glob.glob(f'{args.image_dir}/*.jpg'):
         image = cv2.imread(image_path)
@@ -72,12 +77,26 @@ def main():
         boxes = boxes[indices]
         labels = labels[indices]
 
-        draw_boxes(src_image, boxes, scores, labels, colors, classes)
+        # draw_boxes(src_image, boxes, scores, labels, colors, classes)
 
         # cv2.namedWindow('image', cv2.WINDOW_NORMAL)
         # cv2.imshow('image', src_image)
-        cv2.imwrite(f'tmp/{image_path.split("/")[-1]}', src_image)
-        cv2.waitKey(0)
+        # cv2.imwrite(f'tmp/{image_path.split("/")[-1]}', src_image)
+        # cv2.waitKey(0)
+
+        # get best bbox and all class predictions for csv
+        i_best = np.argmax(scores)
+        best_bbox = boxes[i_best]
+        best_label = labels[i_best]
+        best_color = color_classes[np.argmax(color_preds)]
+        rows.append([image_path, *[int(x) for x in best_bbox], classes[best_label], best_color])
+
+    with open('./predictions.csv', 'w+') as f:
+        writer = csv.writer(f)
+        writer.writerows(rows)
+
+
+
 
 
 if __name__ == '__main__':
