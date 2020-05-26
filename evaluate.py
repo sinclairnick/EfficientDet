@@ -2,6 +2,22 @@ import argparse
 import pandas as pd
 import tensorflow as tf
 
+class Metric:
+    def __init__(self):
+        self.precision = tf.metrics.Precision()
+        self.recall = tf.metrics.Recall()
+        self.categorical_accuracy = tf.metrics.CategoricalAccuracy()
+    def update_state(self, y_true, y_pred):
+        self.precision.update_state(y_true, y_pred)
+        self.recall.update_state(y_true, y_pred)
+        self.categorical_accuracy.update_state(y_true, y_pred)
+    def result(self):
+        return pd.DataFrame({
+            'precision': [self.precision.result().numpy()],
+            'recall': [self.recall.result().numpy()],
+            'categorical_accuracy': [self.categorical_accuracy.result().numpy()]
+        })
+
 if __name__ == '__main__':
     """Evaluate accuracy of color and body classification against ground truth"""
     parser = argparse.ArgumentParser('Evaluate the performance of the vehicle detection model')
@@ -27,21 +43,6 @@ if __name__ == '__main__':
     assert all([x == color_headers[i].split('/')[1] for i,x in enumerate(colors)])
     assert all([x == class_headers[i].split('/')[1] for i,x in enumerate(classes)])
 
-    class Metric:
-        def __init__(self):
-            self.precision = tf.metrics.Precision()
-            self.recall = tf.metrics.Recall()
-            self.categorical_accuracy = tf.metrics.CategoricalAccuracy()
-        def update_state(self, y_true, y_pred):
-            self.precision.update_state(y_true, y_pred)
-            self.recall.update_state(y_true, y_pred)
-            self.categorical_accuracy.update_state(y_true, y_pred)
-        def result(self):
-            return pd.DataFrame({
-                'precision': [self.precision.result().numpy()],
-                'recall': [self.recall.result().numpy()],
-                'categorical_accuracy': [self.categorical_accuracy.result().numpy()]
-            })
     color_metric = Metric()
     class_metric = Metric()
 
