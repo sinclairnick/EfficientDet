@@ -3,6 +3,8 @@ import argparse
 from model import efficientLPR
 import pandas as pd
 
+import tensorflow as tf
+
 def freeze_model(model):
     # freeze whole model
     for layer in model.layers:
@@ -40,13 +42,13 @@ if __name__ == '__main__':
     # unfreeze body and load its weights
     freeze_model(model)
     model.get_layer('car_detector').trainable = True
-    model.load_weights(args.body_weights)
+    model.load_weights('weights/' + args.body_weights)
     body_weights = model.get_layer('car_detector').get_weights()
 
     # unfreeze color and load its weights
     freeze_model(model)
     model.get_layer('color_classifier').trainable = True
-    model.load_weights(args.color_weights)
+    model.load_weights('weights/' + args.color_weights)
     color_weights = model.get_layer('color_classifier').get_weights()
 
     # set color/body weights
@@ -57,5 +59,6 @@ if __name__ == '__main__':
     for layer in model.layers:
         layer.trainable = True
 
-    model.save_weights('extracted-weights.h5')
+    model.save_weights('weights/extracted-weights.h5')
+    # tf.saved_model.save(model, 'saved_model') # save to tf format
 
