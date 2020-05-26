@@ -8,8 +8,6 @@ from utils import (
     )
 from common import input_dir, output_dir, TLHW
 
-# stanford cars dataset modified from
-# https://www.kaggle.com/jutrera/stanford-car-dataset-by-classes-folder#names.csv
 
 if __name__ == '__main__':
     mkdir(output_dir)
