@@ -116,7 +116,6 @@ val2017*
 *.txt
 
 wandb
-nb
 data/processed/
 data/raw/nzvd/*
 data/raw/stanford-cars/*
