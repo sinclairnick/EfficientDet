@@ -55,8 +55,8 @@ def main():
     model.load_weights(model_path, by_name=True)
 
     predictions = []
-
-    for image_path in glob.glob(f'{args.image_dir}/*.jp*'):
+    image_files = sorted(glob.glob(f'{args.image_dir}/*.jp*'))
+    for image_path in image_files[:10]:
         image = cv2.imread(image_path)
         src_image = image.copy()
         # BGR -> RGB
