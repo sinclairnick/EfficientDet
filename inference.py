@@ -13,7 +13,6 @@ from model import efficientLPR
 from utils import preprocess_image, postprocess_boxes
 from utils.draw_boxes import draw_boxes
 
-import csv
 import json
 
 WEIGHTED_BIFPN = True
@@ -22,18 +21,21 @@ IMAGE_SIZES = (512, 640, 768, 896, 1024, 1280, 1408)
 def main():
     os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 
-    parser = argparse.ArgumentParser(description="format_weights.py may need to be run prior to this script")
+    parser = argparse.ArgumentParser(description="""
+    Script to infer on a folder of images.
+    Weights paths are assumed to be in weights/
+    """)
     parser.add_argument('--phi', help="Phi model number", default=0, type=int, choices=(0, 1, 2, 3, 4, 5, 6))
     parser.add_argument('--class_path', help="Csv path to detection classes", type=str, required=True)
     parser.add_argument('--colors_path', help="Csv path to vehicle colors", type=str, required=True)
-    parser.add_argument('--score_thresh', help="Score threshold for detections", default=0.2, type=float)
+    parser.add_argument('--score_thresh', help="Score threshold for detections", default=0.1, type=float)
     parser.add_argument('--model_path', help="Path to .h5 model file", required=True, type=str)
     parser.add_argument('--image_dir', help="Path to input image directory", required=True, type=str)
     args = parser.parse_args()
 
     phi = args.phi
     score_threshold = args.score_thresh
-    model_path = args.model_path
+    model_path = 'weights/' + args.model_path
     image_size = IMAGE_SIZES[phi]
 
     classes = [x[0] for x in pd.read_csv(args.class_path, header=None).values]
@@ -52,9 +54,9 @@ def main():
         
     model.load_weights(model_path, by_name=True)
 
-    rows = [] # will be saved to csv
+    predictions = []
 
-    for image_path in glob.glob(f'{args.image_dir}/*.jpg'):
+    for image_path in glob.glob(f'{args.image_dir}/*.jp*'):
         image = cv2.imread(image_path)
         src_image = image.copy()
         # BGR -> RGB
@@ -66,7 +68,7 @@ def main():
         start = time.time()
         out = model.predict_on_batch([np.expand_dims(image, axis=0)])
         boxes, scores, labels = out[0]
-        color_preds = out[1]
+        color_preds = out[1].numpy()
         boxes, scores, labels = np.squeeze(boxes), np.squeeze(scores), np.squeeze(labels)
         print(time.time() - start)
         boxes = postprocess_boxes(boxes=boxes.copy(), scale=scale, height=h, width=w)
@@ -90,7 +92,7 @@ def main():
         font                   = cv2.FONT_HERSHEY_SIMPLEX
         topRightCorner         = (10,50)
         fontScale              = 1
-        fontColor              = (255,255,255)
+        fontColor              = (0,255,0)
         lineType               = 2
 
         cv2.putText(src_image, best_color, 
@@ -105,12 +107,26 @@ def main():
         cv2.imwrite(f'tmp/{image_path.split("/")[-1]}', src_image)
         # cv2.waitKey(0)
 
-        rows.append([image_path, *[int(x) for x in best_bbox], classes[best_label], best_color])
+        # predictions.append([image_path, *[int(x) for x in best_bbox], classes[best_label], best_color])
+        body_preds = np.zeros((num_classes))
 
+        scores = np.array(scores)
+        labels = np.array(labels)
+        positive_idxs = np.where(scores > 0)
+        # only save positive scores above score threshold
+        # reversed so greater scores overwrite lower scores of same class
+        for label, score in reversed(list(zip(labels[positive_idxs], scores[positive_idxs]))):
+            body_preds[label] = score
 
-    with open('./predictions.csv', 'w+') as f:
-        writer = csv.writer(f)
-        writer.writerows(rows)
+        # print(best_bbox, body_preds, color_preds)
+        prediction = [image_path, *best_bbox, *body_preds, *color_preds[0]]
+        predictions.append(prediction)
+
+    out_df = pd.DataFrame(predictions)
+    out_df.columns = ['file', 'x1', 'y1', 'x2', 'y2', *[f'body/{x}' for x in classes], *[f'color/{x}' for x in color_classes]]
+
+    out_df.to_csv('predictions.csv', index=False)
+
 
 if __name__ == '__main__':
     main()
