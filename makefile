@@ -72,13 +72,14 @@ train:
 	--weighted-bifpn \
 	--compute-val-loss \
 	--batch-size 32 \
-	--snapshot ${SNAPSHOT} \
+	--random-transform \
+	--snapshot weights/extracted-weights.h5 \
 	--phi ${PHI} \
 	--lr ${LR} \
 	--steps ${STEPS} \
 	--epochs ${EPOCHS} \
 	--dropout_rate ${DROPOUT_RATE} \
-	${FLAGS} \
+	--wandb \
 	csv ${TRAIN_DIR}/train_annotations.csv \
 	data/processed/classes.csv data/processed/colors.csv \
 	--val-annotations ${TRAIN_DIR}/val_annotations.csv
