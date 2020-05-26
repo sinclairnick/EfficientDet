@@ -152,13 +152,16 @@ def create_generators(args):
     }
 
     # create random transform generator for augmenting training data
-    print('Color augmentation: {}'.format('enabled' if args.random_transform else 'disabled'))
+    print('Random augmentation: {}'.format('enabled' if args.random_transform else 'disabled'))
     if args.random_transform:
         # reduce intensity of color augmentation when color branch is training
         color_factor = 0.9 if not args.freeze_color else None
 
         misc_effect = MiscEffect()
         visual_effect = VisualEffect(color_factor=color_factor)
+    else:
+        misc_effect = None
+        visual_effect = None
 
     if args.dataset_type == 'pascal':
         from generators.pascal import PascalVocGenerator
