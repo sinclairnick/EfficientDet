@@ -124,4 +124,5 @@ data/raw/car-colors/*
 .vscode
 tmp
 weights/*
+!weights/extracted-weights.h5
 predictions.csv
