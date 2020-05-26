@@ -73,6 +73,7 @@ train:
 	--compute-val-loss \
 	--batch-size 32 \
 	--random-transform \
+	--freeze_color \
 	--snapshot weights/extracted-weights.h5 \
 	--phi ${PHI} \
 	--lr ${LR} \
