@@ -124,4 +124,5 @@ data/raw/car-colors/*
 *.tar.gz
 .vscode
 tmp
+weights/*
 predictions.csv
