@@ -17,6 +17,8 @@ if __name__ == '__main__':
 
     stan = pd.read_csv(f'{input_dir}/stanford-cars/anno_train.csv', header=None)
     stan.columns = ['file', *TLHW, 'class']
+    stan_test = pd.read_csv(f'{input_dir}/stanford-cars/anno_test.csv', header=None)
+
 
     nzvd_train, nzvd_test = nzvd_pipeline(nzvd_train), nzvd_pipeline(nzvd_test)
 
@@ -24,6 +26,7 @@ if __name__ == '__main__':
     all_bodies = np.unique(get_body_names(all_data))
     all_colors = np.unique(get_colors_names(all_data))
 
+    stan_test = align_stanford_classes(stan_test, all_bodies)
     stan = align_stanford_classes(stan, all_bodies)
     stan = shuffle(stan)
 
@@ -47,6 +50,7 @@ if __name__ == '__main__':
     save_dataset(nzvd_test, 'nzvd', 'test', 'test')
     save_dataset(stan_train, 'stanford-cars', 'train', 'train')
     save_dataset(stan_val, 'stanford-cars', 'train', 'val')
+    save_dataset(stan_test, 'stanford-cars', 'test', 'test')
     save_dataset(colored_train, 'car-colors', 'train', 'train')
     save_dataset(colored_val, 'car-colors', 'train', 'val')
 
