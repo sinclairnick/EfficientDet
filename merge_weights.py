@@ -59,6 +59,6 @@ if __name__ == '__main__':
     for layer in model.layers:
         layer.trainable = True
 
-    model.save_weights('weights/extracted-weights.h5')
+    model.save_weights('weights/extracted-weights-phi{}.h5'.format(phi))
     # tf.saved_model.save(model, 'saved_model') # save to tf format
 

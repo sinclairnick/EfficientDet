@@ -30,13 +30,12 @@ def main():
     parser.add_argument('--class_path', help="Csv path to detection classes", type=str, required=True)
     parser.add_argument('--colors_path', help="Csv path to vehicle colors", type=str, required=True)
     parser.add_argument('--score_thresh', help="Score threshold for detections", default=0.1, type=float)
-    parser.add_argument('--model_path', help="Path to .h5 model file", required=True, type=str)
     parser.add_argument('--image_dir', help="Path to input image directory", required=True, type=str)
     args = parser.parse_args()
 
     phi = args.phi
     score_threshold = args.score_thresh
-    model_path = 'weights/' + args.model_path
+    model_path = 'weights/extracted-weights-phi{}.h5'.format(phi)
     image_size = IMAGE_SIZES[phi]
 
     classes = [x[0] for x in pd.read_csv(args.class_path, header=None).values]

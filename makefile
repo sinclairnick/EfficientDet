@@ -90,7 +90,6 @@ inference:
 	python3 inference.py \
 	--phi ${PHI} \
 	--class_path data/processed/classes.csv \
-	--model_path extracted-weights.h5 \
 	--image_dir ${IMAGE_DIR} \
 	--colors_path data/processed/colors.csv
 
