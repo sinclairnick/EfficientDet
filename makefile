@@ -85,7 +85,7 @@ train:
 	data/processed/classes.csv data/processed/colors.csv \
 	--val-annotations ${TRAIN_DIR}/val_annotations.csv
 
-IMAGE_DIR=data/processed/nzvd/test
+IMAGE_DIR=data/processed/stanford-cars/test
 inference:
 	python3 inference.py \
 	--phi ${PHI} \
@@ -102,6 +102,13 @@ merge-weights:
 	--class_path data/processed/classes.csv \
 	--colors_path data/processed/colors.csv \
 
+evaluate:
+	python3 evaluate.py \
+	--annotations_path ${IMAGE_DIR}_annotations.csv \
+	--predictions_path predictions.csv \
+	--classes_path data/processed/classes.csv \
+	--colors_path data/processed/colors.csv
+
 lpr-predictions:
 	# generate vehicle predictions
 	# generate lp detections/readings
@@ -110,7 +117,3 @@ lpr-predictions:
 train-similarity:
 	make lpr-predictions &&
 	# run similarity metrics on training data
-
-evaluate:
-	make lpr-predictions &&
-	# evaluate
