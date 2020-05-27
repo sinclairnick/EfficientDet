@@ -125,4 +125,5 @@ data/raw/car-colors/*
 tmp
 weights/*
 !weights/extracted-weights.h5
-predictions.csv
+predictions*.csv
+evaluation*.json
