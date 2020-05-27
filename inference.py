@@ -14,6 +14,7 @@ from utils import preprocess_image, postprocess_boxes
 from utils.draw_boxes import draw_boxes
 
 import json
+from tqdm import tqdm
 
 WEIGHTED_BIFPN = True
 IMAGE_SIZES = (512, 640, 768, 896, 1024, 1280, 1408)
@@ -40,7 +41,6 @@ def main():
 
     classes = [x[0] for x in pd.read_csv(args.class_path, header=None).values]
     color_classes = [x[0] for x in pd.read_csv(args.colors_path, header=None).values]
-    print(color_classes)
     num_colors = len(color_classes)
     num_classes = len(classes)
     print('Num classes', num_classes)
@@ -55,8 +55,9 @@ def main():
     model.load_weights(model_path, by_name=True)
 
     predictions = []
+
     image_files = sorted(glob.glob(f'{args.image_dir}/*.jp*'))
-    for image_path in image_files[:10]:
+    for image_path in tqdm(image_files):
         image = cv2.imread(image_path)
         src_image = image.copy()
         # BGR -> RGB
@@ -70,7 +71,6 @@ def main():
         boxes, scores, labels = out[0]
         color_preds = out[1].numpy()
         boxes, scores, labels = np.squeeze(boxes), np.squeeze(scores), np.squeeze(labels)
-        print(time.time() - start)
         boxes = postprocess_boxes(boxes=boxes.copy(), scale=scale, height=h, width=w)
 
         # get best bbox and all class predictions for csv
@@ -104,7 +104,7 @@ def main():
 
         # cv2.namedWindow('image', cv2.WINDOW_NORMAL)
         # cv2.imshow('image', src_image)
-        cv2.imwrite(f'tmp/{image_path.split("/")[-1]}', src_image)
+        # cv2.imwrite(f'tmp/{image_path.split("/")[-1]}', src_image)
         # cv2.waitKey(0)
 
         # predictions.append([image_path, *[int(x) for x in best_bbox], classes[best_label], best_color])
