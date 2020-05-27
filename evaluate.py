@@ -2,9 +2,11 @@ import argparse
 import pandas as pd
 import tensorflow as tf
 from tqdm import trange
+import json
 
 class Metric:
-    def __init__(self):
+    def __init__(self, name):
+        self.name = name
         self.precision = tf.metrics.Precision()
         self.recall = tf.metrics.Recall()
         self.categorical_accuracy = tf.metrics.CategoricalAccuracy()
@@ -13,11 +15,13 @@ class Metric:
         self.recall.update_state(y_true, y_pred)
         self.categorical_accuracy.update_state(y_true, y_pred)
     def result(self):
-        return pd.DataFrame({
-            'precision': [self.precision.result().numpy()],
-            'recall': [self.recall.result().numpy()],
-            'categorical_accuracy': [self.categorical_accuracy.result().numpy()]
-        })
+        return dict(
+            name=self.name,
+            precision=self.precision.result().numpy().item(),
+            recall=self.recall.result().numpy().item(),
+            categorical_accuracy=self.categorical_accuracy.result().numpy().item()
+        )
+        
 
 if __name__ == '__main__':
     """Evaluate accuracy of color and body classification against ground truth"""
@@ -36,6 +40,7 @@ if __name__ == '__main__':
 
     gt_data = pd.read_csv(args.annotations_path, header=None)
     gt_data.columns = ['file', 'x1', 'y1', 'x2', 'y2', 'body', 'color']
+    gt_data = gt_data.sort_values(by=['file'])
     vehicle_data = pd.read_csv(args.predictions_path)
 
     # assert headers are same order as classes/colors
@@ -44,8 +49,8 @@ if __name__ == '__main__':
     assert all([x == color_headers[i].split('/')[1] for i,x in enumerate(colors)])
     assert all([x == class_headers[i].split('/')[1] for i,x in enumerate(classes)])
 
-    color_metric = Metric()
-    class_metric = Metric()
+    color_metric = Metric('color')
+    class_metric = Metric('body')
 
     # calculate performance metrics
     for i in trange(len(vehicle_data)):
@@ -59,5 +64,13 @@ if __name__ == '__main__':
         class_metric.update_state(class_true, predicted[class_headers])
         color_metric.update_state(color_true, predicted[color_headers])
 
-    print('Color Results:\n', color_metric.result())
-    print('Class Results:\n', class_metric.result())
+
+    with open('evaluation.json', 'w+') as f:
+        out = dict(
+            predictions_path=args.predictions_path,
+            annotations_path=args.annotations_path,
+            color_results=color_metric.result(),
+            body_results=class_metric.result()
+        )
+        print(out)
+        f.write(json.dumps(out))
