@@ -73,7 +73,6 @@ train:
 	--compute-val-loss \
 	--batch-size 32 \
 	--random-transform \
-	--freeze_color \
 	--snapshot ${SNAPSHOT} \
 	--phi ${PHI} \
 	--lr ${LR} \
