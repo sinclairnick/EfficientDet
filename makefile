@@ -74,7 +74,7 @@ train:
 	--batch-size 32 \
 	--random-transform \
 	--freeze_color \
-	--snapshot weights/extracted-weights.h5 \
+	--snapshot ${SNAPSHOT} \
 	--phi ${PHI} \
 	--lr ${LR} \
 	--steps ${STEPS} \
@@ -85,7 +85,7 @@ train:
 	data/processed/classes.csv data/processed/colors.csv \
 	--val-annotations ${TRAIN_DIR}/val_annotations.csv
 
-IMAGE_DIR=data/processed/stanford-cars/test
+IMAGE_DIR=data/processed/nzvd/train
 inference:
 	python3 inference.py \
 	--phi ${PHI} \
