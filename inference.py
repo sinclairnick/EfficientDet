@@ -124,7 +124,7 @@ def main():
     out_df = pd.DataFrame(predictions)
     out_df.columns = ['file', 'x1', 'y1', 'x2', 'y2', *[f'body/{x}' for x in classes], *[f'color/{x}' for x in color_classes]]
 
-    out_df.to_csv('predictions.csv', index=False)
+    out_df.to_csv('predictions_phi{}_{}.csv'.format(phi, args.image_dir.split('/')[-2]), index=False)
 
 
 if __name__ == '__main__':
