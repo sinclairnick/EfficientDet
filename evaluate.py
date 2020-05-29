@@ -3,6 +3,10 @@ import pandas as pd
 import tensorflow as tf
 from tqdm import trange
 import json
+import time
+import os
+
+OUT_DIR = 'evaluations'
 
 class Metric:
     def __init__(self, name):
@@ -73,14 +77,20 @@ if __name__ == '__main__':
         class_metric.update_state(class_true, predicted[class_headers])
         color_metric.update_state(color_true, predicted[color_headers])
 
+    if not os.path.exists(OUT_DIR):
+        os.mkdir(OUT_DIR)
+    n = len(os.listdir(OUT_DIR)) + 1
 
-    with open('evaluation.json', 'w+') as f:
+    with open('{}/evaluation_{}.json'.format(OUT_DIR, n), 'w+') as f:
         out = dict(
             predictions_path=args.predictions_path,
             annotations_path=args.annotations_path,
             color_results=color_metric.result(),
             body_results=class_metric.result(),
-            notes=[]
+            # to be filled out manually
+            notes=[],
+            phi='',
+            train_data=[]
         )
         print(out)
         f.write(json.dumps(out))
