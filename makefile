@@ -85,9 +85,11 @@ train:
 	--val-annotations ${TRAIN_DIR}/val_annotations.csv
 
 IMAGE_DIR=data/processed/nzvd/train
+MODEL_PATH=weights/extracted-weights-phi0.h5
 inference:
 	python3 inference.py \
 	--phi ${PHI} \
+	--model_path ${MODEL_PATH} \
 	--class_path data/processed/classes.csv \
 	--image_dir ${IMAGE_DIR} \
 	--colors_path data/processed/colors.csv
@@ -100,10 +102,11 @@ merge-weights:
 	--class_path data/processed/classes.csv \
 	--colors_path data/processed/colors.csv \
 
+PREDICTIONS_PATH=predictions.csv
 evaluate:
 	python3 evaluate.py \
 	--annotations_path ${IMAGE_DIR}_annotations.csv \
-	--predictions_path predictions.csv \
+	--predictions_path  ${PREDICTIONS_PATH} \
 	--classes_path data/processed/classes.csv \
 	--colors_path data/processed/colors.csv
 
