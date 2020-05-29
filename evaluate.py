@@ -39,9 +39,14 @@ if __name__ == '__main__':
     color_labels = {x: i for i, x in enumerate(colors)}
 
     gt_data = pd.read_csv(args.annotations_path, header=None)
+    if 'train' in args.annotations_path.lower(): # get validation annotations too if train set
+        val_data = pd.read_csv(args.annotations_path.replace('train', 'val'), header=None)
+        gt_data = pd.concat([gt_data, val_data])
     gt_data.columns = ['file', 'x1', 'y1', 'x2', 'y2', 'body', 'color']
     gt_data = gt_data.sort_values(by=['file'])
+    gt_data = gt_data.reset_index()
     vehicle_data = pd.read_csv(args.predictions_path)
+    vehicle_data = vehicle_data.sort_values(by=['file'])
 
     # assert headers are same order as classes/colors
     color_headers = [x for x in vehicle_data.columns if x.startswith('color')]
@@ -58,7 +63,11 @@ if __name__ == '__main__':
         ground = gt_data.iloc[i]
         ground_class_label = class_labels[ground["body"]]
         ground_color_label = color_labels[ground['color']]
-        assert predicted[['file']].values[0].split('/')[-1] == ground[['file']].values[0].split('/')[-1]
+
+        pred_fname = predicted[['file']].values[0].split('/')[-1]
+        gt_fname = ground[['file']].values[0].split('/')[-1]
+        assert pred_fname == gt_fname
+
         class_true = tf.one_hot(ground_class_label, depth=len(class_labels))
         color_true = tf.one_hot(ground_color_label, depth=len(color_labels))
         class_metric.update_state(class_true, predicted[class_headers])
@@ -70,7 +79,8 @@ if __name__ == '__main__':
             predictions_path=args.predictions_path,
             annotations_path=args.annotations_path,
             color_results=color_metric.result(),
-            body_results=class_metric.result()
+            body_results=class_metric.result(),
+            notes=[]
         )
         print(out)
         f.write(json.dumps(out))
