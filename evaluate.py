@@ -79,9 +79,8 @@ if __name__ == '__main__':
 
     if not os.path.exists(OUT_DIR):
         os.mkdir(OUT_DIR)
-    n = len(os.listdir(OUT_DIR)) + 1
 
-    with open('{}/evaluation_{}.json'.format(OUT_DIR, n), 'w+') as f:
+    with open('{}/evaluation_{}.json'.format(OUT_DIR, time.time()), 'w+') as f:
         out = dict(
             predictions_path=args.predictions_path,
             annotations_path=args.annotations_path,
