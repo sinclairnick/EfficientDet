@@ -110,11 +110,5 @@ evaluate:
 	--classes_path data/processed/classes.csv \
 	--colors_path data/processed/colors.csv
 
-lpr-predictions:
-	# generate vehicle predictions
-	# generate lp detections/readings
-	# merge vehicle/lp predictions
-
-train-similarity:
-	make lpr-predictions &&
-	# run similarity metrics on training data
+similarities:
+	python3 similarities.py 

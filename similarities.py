@@ -18,6 +18,7 @@ from rapidfuzz import fuzz
 import pickle
 from sklearn.linear_model import LinearRegression
 import argparse
+import time
 
 betas = [10, -1, -1]
 
@@ -139,6 +140,7 @@ def main():
 
     score_accs = []
 
+    start = time.time()
     # compare each prediction against entire GT "database"
     for i, prediction in enumerate(preds.iloc):
         # initialize y_array
@@ -158,13 +160,14 @@ def main():
         score = similarity(x_pred)
         imax = np.argmax(score)
         score_accs.append(y_true[imax] == 1)
-    print('Score acc', np.mean(score_accs))
+    print('Score acc', np.mean(score_accs), 'Processed {} items in {}'.format(preds.shape, time.time() - start))
 
     # evaluate on 50% positive and 50% negative samples
     prec = tf.metrics.Precision()
     rec = tf.metrics.Recall()
     acc = tf.metrics.Accuracy()
 
+    start = time.time()
     for x_, y_ in zip(x, y):
         if similarity(x_) > threshold:
             prec.update_state(y_,[1])
@@ -174,6 +177,10 @@ def main():
             prec.update_state(y_,[0])
             rec.update_state(y_,[0])
             acc.update_state(y_,[0])
+    print('Took {} to process {} items'.format(time.time() - start, x.shape))
     print('Precision', prec.result().numpy())
     print('Recall', rec.result().numpy())
     print('Accuracy', acc.result().numpy())
+
+if __name__ == '__main__':
+    main()

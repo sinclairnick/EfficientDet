@@ -61,6 +61,9 @@ if __name__ == '__main__':
     color_metric = Metric('color')
     class_metric = Metric('body')
 
+    per_color_acc = {label: tf.metrics.CategoricalAccuracy() for label in range(len(color_labels))}
+    per_class_acc = {label: tf.metrics.CategoricalAccuracy() for label in range(len(class_labels))}
+
     # calculate performance metrics
     for i in trange(len(vehicle_data)):
         predicted = vehicle_data.iloc[i]
@@ -77,8 +80,14 @@ if __name__ == '__main__':
         class_metric.update_state(class_true, predicted[class_headers])
         color_metric.update_state(color_true, predicted[color_headers])
 
+        per_class_acc[ground_class_label].update_state(class_true, predicted[class_headers])
+        per_color_acc[ground_color_label].update_state(color_true, predicted[color_headers])
+
     if not os.path.exists(OUT_DIR):
         os.mkdir(OUT_DIR)
+
+    per_class_acc = {classes[label]: metric.result().numpy().item() for label,metric in per_class_acc.items()}
+    per_color_acc = {colors[label]: metric.result().numpy().item() for label,metric in per_color_acc.items()}
 
     with open('{}/evaluation_{}.json'.format(OUT_DIR, time.time()), 'w+') as f:
         out = dict(
@@ -86,6 +95,8 @@ if __name__ == '__main__':
             annotations_path=args.annotations_path,
             color_results=color_metric.result(),
             body_results=class_metric.result(),
+            per_color=per_color_acc,
+            per_class=per_class_acc,
             # to be filled out manually
             notes=[],
             phi='',
