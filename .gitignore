@@ -117,9 +117,7 @@ val2017*
 
 wandb
 data/processed/
-data/raw/nzvd/*
-data/raw/stanford-cars/*
-data/raw/car-colors/*
+data/raw/
 *.tar.gz
 .vscode
 tmp
