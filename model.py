@@ -18,6 +18,8 @@ from initializers import PriorProbability
 from utils.anchors import anchors_for_shape
 import numpy as np
 
+from color_classifier import create_color_classifier
+
 w_bifpns = [64, 88, 112, 160, 224, 288, 384]
 d_bifpns = [3, 4, 5, 6, 7, 7, 8]
 d_heads = [3, 3, 3, 4, 4, 4, 5]
@@ -417,8 +419,7 @@ class ClassNet(models.Model):
 
 def efficientLPR(phi, num_classes=20, num_anchors=9, 
     num_colors=13, # NOTE: ADDED
-    dropout_rate=0.1, # NOTE: ADDED
-    hinge_loss=True, # NOTE: ADDED
+    dropout_rate=0.5, # NOTE: ADDED
     weighted_bifpn=False, freeze_bn=False,
     score_threshold=0.01, detect_quadrangle=False, anchor_parameters=None, separable_conv=True):
     assert phi in range(7)
@@ -454,30 +455,17 @@ def efficientLPR(phi, num_classes=20, num_anchors=9,
     regression = layers.Concatenate(axis=1, name='regression')(regression)
 
     # ------------------------------ COLOR DETECTION ----------------------------- #
-    spp = SpatialPyramidPooling()
-    pyramids = [spp(feature) for feature in feature_inputs]
-    final_layer = layers.Concatenate(axis=1)(pyramids)
-    final_layer = layers.Dropout(rate=dropout_rate)(final_layer)
-
-    colors = layers.Dense(num_colors, name="colors/out", activation="softmax")(final_layer)
-
-    car_detector = models.Model(inputs=feature_inputs, outputs=[classification, regression], name="car_detector")
-    color_classifier = models.Model(inputs=feature_inputs, outputs=colors, name="color_classifier")
-
-    classification, regression = car_detector(features)
+    color_classifier = create_color_classifier(feature_inputs, num_colors=num_colors)
     colors_out = color_classifier(features)
 
+    car_detector = models.Model(inputs=feature_inputs, outputs=[classification, regression], name="car_detector")
+    classification, regression = car_detector(features)
 
     classification = layers.Lambda(lambda x: x, name="classification")(classification)
     regression = layers.Lambda(lambda x: x, name="regression")(regression)
     colors_out = layers.Lambda(lambda x: x, name="colors")(colors_out)
 
-    # car_out = [classification, regression]
     model = models.Model(inputs=[image_input], outputs=[classification, regression, colors_out], name="efficientlpr")
-
-    # tf.keras.utils.plot_model(model, to_file="./model.png", expand_nested=True, show_shapes=True, dpi=40)
-
-    # model = models.Model(inputs=[image_input], outputs=[classification, regression, colors], name='efficientdet')
 
     # apply predicted regression to anchors
     anchors = anchors_for_shape((input_size, input_size), anchor_params=anchor_parameters)
