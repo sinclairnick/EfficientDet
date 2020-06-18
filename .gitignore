@@ -117,7 +117,7 @@ val2017*
 
 wandb
 data/processed/
-data/raw/
+data/raw/*
 *.tar.gz
 .vscode
 tmp
