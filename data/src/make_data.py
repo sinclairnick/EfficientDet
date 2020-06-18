@@ -25,8 +25,14 @@ def save_csvs(train, val, test, classes, out_dir):
     pd.DataFrame(val).to_csv(out_dir + '/val_annotations.csv', header=None, index=None)
     pd.DataFrame(test).to_csv(out_dir + '/test_annotations.csv', header=None, index=None)
 
+    print('Color' if len(classes) < 50 else 'Body')
+    print('n train:', train.shape[0])
+    print('n val:', val.shape[0])
+    print('n test:', test.shape[0])
+    print('n classes:', len(classes))
+    
     classes = np.hstack([np.expand_dims(classes,1), np.expand_dims(range(len(classes)), 1)])
-    pd.DataFrame(classes).to_csv(out_dir + '/colors.csv', header=None, index=None)
+    pd.DataFrame(classes).to_csv(out_dir + '/classes.csv', header=None, index=None)
 
 
 
@@ -81,6 +87,8 @@ def main():
     # annos: [n, [fname (of image), make, year, x1, y1, x2, y2]]
     annos = np.array(get_annos([]))
     annos = np.hstack([annos, np.repeat('black', annos.shape[0]).reshape(-1,1)]) # add dummy color column
+    
+    makes = list(set(makes)) # remove duplicates
 
     save_csvs(*split(annos), classes=makes, out_dir=web_dir)
 
