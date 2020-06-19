@@ -39,7 +39,7 @@ pretrain-body:
     --dropout_rate ${DROPOUT_RATE} \
 	--freeze_color \
 	--wandb \
-    csv ${BODY_DIR}/train_annotations.csv ${BODY_DIR}/classes.csv ${COLOR_DIR}/colors.csv \
+    csv ${BODY_DIR}/train_annotations.csv ${BODY_DIR}/classes.csv ${COLOR_DIR}/classes.csv \
     --val-annotations ${BODY_DIR}/val_annotations.csv
 
 pretrain-color:
@@ -59,7 +59,7 @@ pretrain-color:
 	--freeze_body \
 	--wandb \
 	--no-evaluation \
-    csv ${COLOR_DIR}/train_annotations.csv data/processed/classes.csv data/processed/colors.csv \
+    csv ${COLOR_DIR}/train_annotations.csv ${COLOR_DIR}classes.csv ${COLOR_DIR}/classes.csv \
     --val-annotations ${COLOR_DIR}/val_annotations.csv
 
 train:
