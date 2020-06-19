@@ -4,8 +4,8 @@ environment: # sometimes have to run this twice
 	python3 setup.py build_ext --inplace
 
 raw-data: # gdown may require sudo install
-	$(shell gdown --id 18EunmjOJsbE5Lh9zA0cZ4wKV6Um46dkg -O data/raw/comp-cars.tar.gz) 
-	$(shell unzip ___ -d data/raw)
+	$(shell gdown --id 1IcX2xlz2A-QostjdL_NU5SrBp_vy9bs5 -O data/raw/comp-cars.zip) 
+	$(shell unzip data/raw/comp-cars.zip -dn data/raw)
 
 processed-data:
 	python3 data/src/make_data.py
