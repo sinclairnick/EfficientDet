@@ -5,7 +5,7 @@ environment: # sometimes have to run this twice
 
 raw-data: # gdown may require sudo install
 	$(shell gdown --id 1IcX2xlz2A-QostjdL_NU5SrBp_vy9bs5 -O data/raw/comp-cars.zip) 
-	$(shell unzip data/raw/comp-cars.zip -dn data/raw)
+	$(shell unzip -n data/raw/comp-cars.zip)
 
 processed-data:
 	python3 data/src/make_data.py
