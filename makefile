@@ -5,7 +5,7 @@ environment: # sometimes have to run this twice
 
 raw-data: # gdown may require sudo install
 	$(shell gdown --id 18EunmjOJsbE5Lh9zA0cZ4wKV6Um46dkg -O data/raw/comp-cars.tar.gz) 
-	$(shell tar -C data/raw/comp-cars -zxvf data/raw/comp-cars.tar.gz)
+	$(shell unzip ___ -d data/raw)
 
 processed-data:
 	python3 data/src/make_data.py
@@ -14,7 +14,7 @@ processed-data:
 PHI=0
 LR=0.0001
 STEPS=25
-EPOCHS=50
+EPOCHS=100
 DROPOUT_RATE=0.5
 SNAPSHOT=imagenet
 
@@ -42,14 +42,12 @@ pretrain-body:
     csv ${BODY_DIR}/train_annotations.csv ${BODY_DIR}/classes.csv ${COLOR_DIR}/classes.csv \
     --val-annotations ${BODY_DIR}/val_annotations.csv
 
-pretrain-color:
-	python3 train.py \
+pretrain-color: # note: has less available arguments than above
+	python3 train_color.py \
     --gpu 0 \
     --freeze-backbone \
     --weighted-bifpn \
-    --compute-val-loss \
     --batch-size 32 \
-	--random-transform \
     --snapshot ${SNAPSHOT} \
     --phi ${PHI} \
     --lr ${LR} \
@@ -58,8 +56,8 @@ pretrain-color:
     --dropout_rate ${DROPOUT_RATE} \
 	--freeze_body \
 	--wandb \
-	--no-evaluation \
-    csv ${COLOR_DIR}/train_annotations.csv ${COLOR_DIR}classes.csv ${COLOR_DIR}/classes.csv \
+	--multiprocessing \
+    csv ${COLOR_DIR}/train_annotations.csv ${COLOR_DIR}/classes.csv \
     --val-annotations ${COLOR_DIR}/val_annotations.csv
 
 train:
